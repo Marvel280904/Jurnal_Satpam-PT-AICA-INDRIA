@@ -1,0 +1,152 @@
+/* ===== Notification bell in topbar ===== */
+/* Make the search take the left space for BOTH roles */
+.topbar1 .search-box1,
+.topbar1 .search-box2 {
+  flex: 1;              /* <-- this is what Satpam was missing */
+}
+
+/* Nice alignment for the right side */
+.topbar1 .profile-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Keep the bell right before the profile */
+.topbar1 .notif {
+  margin: 0 12px 0 0;   /* space between bell and profile */
+  display: flex;
+  align-items: center;
+}
+
+/* (optional) keep things tidy on small screens */
+@media (max-width: 640px) {
+  .topbar1 .search-box1 input,
+  .topbar1 .search-box2 input {
+    width: 160px;
+  }
+}
+
+.topbar1 {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* Ensure search + bell + profile line up nicely */
+.topbar1 .search-box1 {
+    flex: 1;
+}
+
+.notif {
+    position: relative;
+    margin-right: 10px; /* spacing between bell and profile-section */
+    display: flex;
+    align-items: center;
+}
+
+/* Bell button styling */
+.notif-button {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border: none;
+    border-radius: 50%;
+    background: #2a3462;
+    color: #fff;
+    cursor: pointer;
+}
+
+.notif-button:hover { filter: brightness(1.05); }
+
+.notif-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 10px;
+    background: #ff4d6d;
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Panel drops from topbar center */
+.notif-panel {
+  position: absolute; 
+  left: 50%; 
+  transform: translate(-50%, -10px) scale(0.98);
+  top: 48px; 
+  width: 380px; 
+  max-width: 90vw;
+  background: rgba(240,240,244,.95); 
+  backdrop-filter: blur(6px);
+  border-radius: 16px; 
+  box-shadow: 0 20px 50px rgba(0,0,0,.25);
+  padding: 14px; 
+  opacity: 0; 
+  pointer-events: none; 
+  transition: .25s ease;
+  z-index: 10000;
+}
+.notif-panel.open { opacity: 1; transform: translate(-50%, 0) scale(1); pointer-events: auto; }
+
+.notif-core{
+  max-height: 264px;
+  overflow-y: auto;
+  max-width: 100vw;
+}
+
+.notif-head { 
+  font-weight: 800;
+  font-size: large; 
+  margin: 4px 6px 10px; 
+  color: black; 
+}
+
+.notif-item {
+  display: grid; 
+  grid-template-columns: 50px 1fr; 
+  gap: 10px;
+  background: #4E567D; 
+  border-radius: 16px; 
+  padding: 10px 12px; 
+  margin: 10px 6px;
+  box-shadow: 0 6px 0 #B1B8CF;
+  cursor: pointer;
+}
+
+.notif-item .notif-icon {
+  width: 46px; 
+  height: 46px; 
+  color:black;
+  background: #fff; 
+  border-radius: 14px;
+  display:flex; 
+  align-items:center; 
+  justify-content:center; 
+  font-size: 30px;
+  box-shadow: inset 0 -2px 0 rgba(0,0,0,.08);
+}
+.notif-title { font-weight: 800; }
+.notif-desc  { font-size: 13px; opacity: .8; margin-top: 2px; }
+
+.notif-item:hover {
+  background: #6A74AA;
+  box-shadow: 0 6px 0 #4E567D, 0 10px 24px #4E567D;
+  transform: translateY(-1px);
+}
+.notif-empty { 
+  padding: 10px; 
+  text-align: center; 
+  opacity: .7; 
+  color: black;
+}

@@ -1,0 +1,251 @@
+.table-bg {
+    padding: 20px;
+    background-color: #E6E9F4;
+    flex:1;
+}
+
+h1 {
+    margin-top: 0px;
+    font-size: xx-large;
+}
+
+.table-main{
+    background: white;
+    padding: 20px;
+    border-radius: 20px;
+}
+
+.table-container {
+    background: white;
+    border-radius: 8px;
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #eee;
+    text-align: left;
+}
+
+th {
+    background-color: #f0f2f8;
+    font-weight: bold;
+}
+
+.table-container tbody tr:nth-child(odd) {
+    background-color: #ffffff; /* putih */
+}
+
+.table-container tbody tr:nth-child(even) {
+    background-color: #f2f2f2; /* abu-abu terang */
+}
+
+.status-badge {
+    padding: 4px 10px;
+    border-radius: 5px;
+    color: #fff;
+    font-weight: bold;
+    cursor: pointer;
+    display: inline-block;
+}
+
+.status-on {
+    background-color: #4CAF50;
+}
+
+.status-off {
+    background-color: #f66;
+}
+
+/* bagian filter */
+
+.filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+/* beri sizing dasar supaya bisa shrink/grow */
+.filter-bar .filter-select,
+.filter-bar .filter-date,
+.filter-bar .filter-search,
+.filter-bar .btn-tambah-jadwal {
+  flex: 1 1 auto;
+  min-width: 150px;
+  cursor: pointer;
+}
+
+.filter-select {
+    padding: 7px 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+    background-color: #fff;
+    color: #333;
+    min-width: 140px;
+}
+
+.filter-search {
+    display: flex;
+    align-items: center;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 4px 10px;
+    flex: 1;
+    max-width: 250px;
+}
+
+.filter-search i.bi-search {
+    margin-right: 8px;
+    font-size: 1.2rem;
+    color: #333;
+}
+
+.filter-search input[type="text"] {
+    border: none;
+    outline: none;
+    flex: 1;
+    font-size: 1rem;
+    background-color: transparent;
+}
+
+.filter-date {
+    padding: 6px 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    justify-content: right;
+}
+
+.btn-tambah-jadwal {
+    background-color: #007bff;
+    color: white;
+    padding: 6px 14px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+.btn-tambah-jadwal:hover {
+    background-color: #0056b3;
+}
+
+/* Modal container */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+/* Keep modal width fixed-ish and prevent double scrollbars here */
+.modal-content {
+  background: #fff;
+  border-radius: 8px;
+  width: clamp(900px, 92vw, 1100px);
+  max-height: 90vh;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;        /* <-- important: modal itself doesn’t scroll */
+  position: relative;
+}
+
+.btn-close-modal {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.btn-close-modal:hover {
+    background: #ccc;
+}
+
+.kosong{
+  text-align: center;
+}
+
+@media (max-width: 1040px) {
+  .filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+  }
+
+  /* jadikan search 100% baris sendiri */
+  .filter-bar .filter-search {
+    flex: 1 1 100%;
+    max-width: none;     /* override max-width:250px */
+    width: 100%;
+    order: 3;            /* taruh di baris bawah */
+  }
+}
+
+/* ====== 800px: search juga full width ====== */
+@media (max-width: 800px) {
+  .filter-bar .filter-search {
+    flex: 1 1 100%;
+    max-width: none;
+    width: 100%;
+    order: 3;
+  }
+}
+
+/* ====== 768px: date & button sejajar; search full width ====== */
+@media (max-width: 768px) {
+  .filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* Baris 1: Location + Shift */
+  .filter-bar .filter-select {
+    flex: 1 1 calc(50% - 8px);
+    min-width: 0;
+    order: 1;
+  }
+
+  /* Baris 2: Date + Tambah Jadwal (sejajar) */
+  .filter-bar .filter-date,
+  .filter-bar .btn-tambah-jadwal {
+    flex: 1 1 calc(50% - 8px);
+    min-width: 0;
+    order: 2;
+  }
+
+  /* Baris 3: Search 100% */
+  .filter-bar .filter-search {
+    flex: 1 1 100%;
+    max-width: none;
+    width: 100%;
+    order: 3;
+  }
+
+  /* kecilkan padding input agar tidak bikin overflow */
+  .filter-bar .filter-search input {
+    padding-right: 0;
+  }
+}
+
+

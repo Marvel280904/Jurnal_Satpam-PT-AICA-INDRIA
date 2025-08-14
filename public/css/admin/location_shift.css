@@ -1,0 +1,265 @@
+.location-shift-container {
+    padding: 20px;
+}
+
+.location-shift-container h1 {
+    font-size: xx-large;
+    margin-top: 0%;
+}
+
+.section-wrapper {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.section-header button {
+    background-color: #4a75f0;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.location-section {
+    flex: 3;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+    padding: 10px;
+}
+
+.shift-section {
+    flex: 1.5;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+    padding: 10px;
+}
+
+.location-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.location-card {
+    position: relative;
+    background: #efeeee;
+    display: flex;
+    border-radius: 10px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+    overflow: hidden;
+    transition: all 0.3s ease-in-out;
+}
+
+.location-card img {
+    width: 160px;
+    height: 120px;
+    object-fit: cover;
+    padding: 10px;
+}
+
+.location-info {
+    padding: 0px 15px 10px;
+}
+
+.location-info p {
+    padding-bottom: 10%;
+}
+
+.location-info i {
+    color: red;
+}
+
+.shift-list {
+    padding-left: 0;
+    list-style: none;
+}
+
+.shift-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.calendar-icon {
+    font-size: 30px;
+}
+
+.shift-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.shift-text strong{
+    font-size: large;
+}
+
+.shift-text small i{
+    color: red;
+}
+
+.shift-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #efeeee;
+    padding: 12px 16px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.shift-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.edit-btn {
+    background-color: #4f6ef7;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.edit-btn:hover {
+    background-color: #3d52d3;
+}
+
+.edit-btn i {
+    font-size: 16px;
+}
+
+.empty-text {
+    font-style: italic;
+    color: #888;
+    margin-top: 10px;
+}
+
+/* Popup */
+.popup {
+    display: none; /* default hidden */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.popup.show {
+    display: flex; /* hanya tampil saat class 'show' ditambahkan */
+}
+
+.popup-content {
+    background: white;
+    padding: 24px 28px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 420px;
+    position: relative;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.popup-content h3 {
+    margin-top: 0;
+    font-size: 20px;
+}
+
+.popup-content label {
+    display: block;
+    margin-top: 12px;
+    font-weight: 600;
+}
+
+.popup-content input,
+.popup-content textarea,
+.popup-content select {
+    width: 100%;
+    padding: 10px;
+    margin-top: 4px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.popup-content button {
+    margin-top: 16px;
+    padding: 10px;
+    background-color: #4a75f0;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    width: 100%;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.popup-content button:hover {
+    background-color: #3c63dd;
+}
+
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 16px;
+    font-size: 22px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* activate/inactivate button */
+.location-card.inactive {
+    background-color: #f1f1f1;
+    filter: grayscale(100%) brightness(0.9);
+    opacity: 0.8;
+}
+
+.location-card.inactive .location-info {
+    color: #555;
+}
+
+.location-card.inactive .status-btn {
+    background-color: #999;
+    pointer-events: auto;
+}
+
+
+.status-btn {
+    position: absolute;
+    bottom: 8px;
+    right: 16px;
+    padding: 6px 12px;
+    border: none;
+    background-color: #6366f1;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.status-btn:hover {
+    background-color: #4f46e5;
+}

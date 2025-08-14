@@ -1,0 +1,110 @@
+body, html {
+    height: 100%;
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+}
+
+.login-container {
+    position: relative;
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bg-img {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: -1;
+    filter: brightness(0.9);
+}
+
+.login-box {
+    width: 100%;
+    max-width: 340px;
+    padding: 30px;
+    background-color: rgba(255, 255, 255, 0.92);
+    border-radius: 15px;
+    box-shadow: 0px 0px 15px rgba(0,0,0,0.2);
+    box-sizing: border-box;
+    margin: 0 16px; /* biar ada padding samping di mobile */
+}
+
+.login-box h2 {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.input-group-custom {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.input-group-custom .icon-left {
+    position: absolute;
+    top: 50%;
+    left: 12px;
+    transform: translateY(-50%);
+    color: #888;
+    font-size: 18px;
+}
+
+.input-group-custom input {
+    width: 100%;
+    padding: 10px 10px 10px 40px; /* padding kiri besar utk icon */
+    border-radius: 7px;
+    border: 1px solid #ccc;
+    background-color: #f0f0f0;
+    font-size: 14px;
+    box-sizing: border-box;
+    transition: border-color 0.3s;
+}
+
+.input-group-custom input:focus {
+    outline: none;
+    border-color: #4a75f0;
+    background-color: #fff;
+}
+
+.input-group-custom input::placeholder {
+    color: #aaa;
+    font-size: 14px;
+}
+
+button[type="submit"] {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 7px;
+    background-color: #4a75f0;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+button[type="submit"]:hover {
+    background-color: #365ee6;
+}
+
+.error {
+    color: red;
+    font-size: 0.85em;
+    margin-top: 10px;
+    display: block;
+    text-align: center;
+}
+
+/* 🌐 Media Query Tambahan untuk Layar Sangat Kecil */
+@media (max-width: 400px) {
+    .login-box {
+        padding: 20px;
+    }
+
+    .login-box h2 {
+        font-size: 1.4em;
+    }
+}

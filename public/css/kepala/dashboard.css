@@ -1,0 +1,164 @@
+.dashboard-kepala {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    background-color: #E6E9F4;
+}
+
+.dashboard-kepala h1{
+    margin-top: 0px;
+    font-size: xx-large;
+}
+
+.top-panels {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-top: -25px;
+}
+
+.lokasi-shift-panel,
+.jurnal-status-panel {
+    flex: 1;
+    min-width: 300px;
+    background: #fff;
+    padding: 0px 15px 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    max-height: 400px;
+    display: flex;
+    flex-direction: column;
+}
+
+.scroll-panel {
+    overflow-y: auto;
+    max-height: 190px;
+    padding-right: 10px;
+}
+
+.satpam-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #eee;
+    padding: 10px 0;
+    gap: 10px;
+}
+
+.satpam-card img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.satpam-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.lokasi-info {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    color: #555;
+    font-size: 0.9em;
+}
+
+.lokasi-info i{
+    color:rgb(215, 8, 8);
+}
+
+.empty-message {
+    padding: 1rem;
+    color: #888;
+    font-style: italic;
+    text-align: center;
+}
+
+.header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.header-row select{
+    background-color: #e0dfdf;
+    border-radius: 5px;
+    padding: 3px;
+    cursor: pointer;
+}
+
+.jurnal-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #eee;
+    padding: 10px 0;
+    gap: 10px;
+}
+
+.badge {
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: capitalize;
+}
+
+.badge.green { background-color: #28a745; color: #fff; }
+.badge.red { background-color: #dc3545; color: #fff; }
+.badge.yellow { background-color: #ffc107; color: #000; }
+.badge.approve { background-color: #28a745; color: #fff; }
+.badge.reject { background-color: #dc3545; color: #fff; }
+.badge.waiting { background-color: #ffc107; color: #000; }
+.badge.pink { background-color: #f8c1e1; color: #333; }
+.badge.blue { background-color: #d0e2ff; color: #333; }
+
+.history-panel {
+    background: #fff;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    overflow-x: auto;
+}
+
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.history-table th, .history-table td {
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.row-white { background-color: #fff; }
+.row-grey { background-color: #f7f7f7; }
+
+@media screen and (max-width: 768px) {
+    .top-panels {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 1040px) {
+    .satpam-card {
+        flex-wrap: wrap; /* Supaya elemen bisa pindah baris */
+    }
+
+    .satpam-info {
+        flex: 1; /* Ambil sisa ruang yang tersedia */
+        min-width: 150px; /* Batas minimum supaya nggak terlalu sempit */
+    }
+
+    .badge {
+        margin-top: 5px; /* Kasih jarak kalau pindah ke bawah */
+    }
+}
+

@@ -1,0 +1,100 @@
+.logs-container {
+    padding: 20px;
+}
+
+h1 {
+    margin-bottom: 20px;
+    font-size: xx-large;
+    margin-top: 0%;
+}
+
+.filter-bar {
+    display: flex;
+    justify-content: end;
+    margin-bottom: 15px;
+}
+
+.filter-form {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.filter-date, .filter-search {
+    display: flex;
+    align-items: center;
+    border: 1px solid #ccc;
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: white;
+}
+
+.filter-date i, .filter-search i {
+    margin-right: 5px;
+    color: #888;
+}
+
+.filter-search input,
+.filter-date input {
+    border: none;
+    outline: none;
+    font-size: 14px;
+    background: transparent;
+}
+
+.btn-filter {
+    padding: 6px 12px;
+    background-color: #4666ff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.logs-table table {
+    background: white;
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    border-radius: 15px;
+    overflow: hidden;
+    padding: 5px 0px 5px 5px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+}
+
+.logs-table th, .logs-table td {
+    padding: 10px 15px;
+    text-align: left;
+    border-bottom: 2px solid #eee;
+}
+
+.row-white {
+    background-color: #fff;
+}
+
+.row-grey {
+    background-color: #f2f2f2;
+}
+
+.severity {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-weight: bold;
+}
+
+.severity.info {
+    background-color: #dbe8ff;
+    color: #003e9c;
+}
+
+.severity.warning {
+    background-color: #ffe3c1;
+    color: #c05600;
+}
+
+.empty-log {
+    text-align: center;
+    padding: 20px;
+    font-style: italic;
+    color: #777;
+}

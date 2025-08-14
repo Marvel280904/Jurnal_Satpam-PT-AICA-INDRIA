@@ -1,0 +1,237 @@
+body, html {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background-color: #E6E9F4;
+}
+
+.dashboard-satpam {
+    padding: 20px;
+    background-color: #E6E9F0;
+    flex:1;
+}
+
+.dashboard-satpam h1{
+    margin-top: 0px;
+    font-size: xx-large;
+}
+
+.satpam-panels {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    align-items: stretch;
+    padding-bottom: 20px;
+}
+
+.panel {
+    background: #fff;
+    border-radius: 14px;
+    padding: 14px 18px 18px;
+    flex: 1 1 320px;
+    box-shadow: 0 2px 10px rgba(0,0,0,.06);
+    min-width: 280px;
+}
+
+.panel h3 {
+    margin: 6px 0 12px;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+/* ===== Left card (Shift & Lokasi) ===== */
+.shift-location .top-row{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 6px 0 6px;
+    padding-top: 6px;
+}
+
+.title{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.title i{
+    font-size: 20px;
+    color: #111827;
+    background: #F4F6FB;
+    border-radius: 10px;
+    padding: 6px;
+}
+
+.shift-location .date{
+    margin: 0 0 2px 41px; /* indent under the icon */
+    color: #6B7280;
+}
+
+.jurnal-status .recentsub{
+    margin: 0 0 2px 41px; /* indent under the icon */
+    color: #6B7280;
+}
+
+.jurnal-status .js-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+
+.jurnal-status .status-line{
+  margin:0;
+  white-space:nowrap;
+}
+
+.btn-jurnal{
+    display: inline-block;
+    background: #3366FF;
+    color: #fff;
+    padding: 9px 14px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 700;
+    box-shadow: 0 4px 14px rgba(51,102,255,.25);
+    white-space: nowrap;
+}
+.btn-jurnal:hover{ filter: brightness(1.05); }
+
+.jurnal-status p{ margin: 8px 0; }
+
+.status{
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 14px;
+    background: #E5E7EB; /* default */
+    color: #111827;
+}
+
+.status.approve{ background:#C8F6E9; color:#0F766E; }
+.status.waiting{ background:#FFF2A8; color:#8B6B00; }
+.status.reject{  background:#FFD6D6; color:#A40000; }
+
+/* Small screens */
+@media (max-width: 640px){
+    .shift-location .top-row{
+        align-items: flex-start;
+    }
+    .btn-jurnal{
+        padding: 9px 12px;
+        border-radius: 8px;
+    }
+}
+
+.jurnal-history {
+    max-height: 400px; /* adjust as needed */
+    overflow-y: auto;
+}
+
+.jurnal-history h3{
+    padding-top: 5px;
+}
+
+.jurnal-history table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    min-width: 600px;
+}
+
+.jurnal-history th, .jurnal-history td {
+    border-bottom: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+.jurnal-history thead th {
+    position: sticky;
+    top: 0;
+    background: white; /* keep header visible on scroll */
+    z-index: 2;
+}
+
+.jurnal-history tr:nth-child(odd) {
+    background-color: #ffffff; /* putih */
+}
+
+.jurnal-history tbody tr:nth-child(even) {
+    background-color: #f2f2f2; /* abu-abu terang */
+}
+
+.badge.blue {
+    background: #cce5ff;
+    padding: 4px 10px;
+    border-radius: 6px;
+}
+
+.badge.pink {
+    background: #f3c1ec;
+    padding: 4px 10px;
+    border-radius: 6px;
+}
+
+@media (max-width: 750px) {
+    .sidebar1{
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 250px; /* sesuaikan dengan lebar sidebar */
+        height: 100vh; /* penuh layar */
+        background-color: white;
+        padding-top: 20px;
+        z-index: 1000;
+    }
+
+    .sidebar1.collapsed {
+        width: 40px; 
+        padding-left: 10px;
+        padding-right: 5px;
+        transition: width 0.3s ease-in-out;
+    }
+
+    .sidebar1.collapsed .nav a span {
+        display: none; 
+    }
+
+    .sidebar1.collapsed .logo {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 10px;
+        padding: 10px 0;
+    }
+
+    .sidebar1.collapsed .logo img {
+        max-height: 10px; 
+        width: auto;
+    }
+
+    .sidebar1 .nav a {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        gap: 10px;
+        text-decoration: none;
+        border-radius: 5px;
+        margin-bottom: 10px;
+        font-weight: 500;
+        color: black;
+    }
+
+    .sidebar1 .nav a i {
+        font-size: 18px;
+    }
+
+    .sidebar1 .nav a.active,
+    .sidebar1 .nav a:hover {
+        background-color: #4880FF;
+        color: white;
+    }
+}

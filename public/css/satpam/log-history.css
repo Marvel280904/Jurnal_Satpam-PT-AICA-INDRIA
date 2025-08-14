@@ -1,0 +1,335 @@
+.log-history-container {
+    padding: 20px;
+    background-color: #E6E9F4;
+    flex:1;
+}
+
+.log-history-container h1{
+    margin-top: 0px;
+    font-size: xx-large;
+}
+
+/* FILTER BAR */
+.filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.filter-bar select,
+.filter-bar input[type="date"] {
+    padding: 6px 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    cursor: pointer;
+}
+
+#filterLokasi{
+    padding-right: 5px;
+}
+
+#filterShift{
+    padding-right: 35px;
+}
+
+/* SEARCH WRAPPER */
+.search-wrapper {
+    position: relative;
+    flex-grow: 1;
+    max-width: 200px;
+}
+
+.search-wrapper .search-icon {
+    position: absolute;
+    top: 50%;
+    left: 10px;
+    transform: translateY(-50%);
+    color: #666;
+    pointer-events: none;
+}
+
+.search-wrapper input {
+    width: 100%;
+    padding: 6px 10px 6px 32px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+/* TABLE STYLING */
+
+.table-bg{
+    background: white;
+    padding: 20px;
+    border-radius: 20px;
+}
+
+.table-container {
+    background: white;
+    border-radius: 8px;
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #eee;
+    text-align: left;
+}
+
+th {
+    background-color: #f0f2f8;
+    font-weight: bold;
+}
+
+.table-container tbody tr:nth-child(odd) {
+    background-color: #ffffff; /* putih */
+}
+
+.table-container tbody tr:nth-child(even) {
+    background-color: #f2f2f2; /* abu-abu terang */
+}
+
+/* Flex untuk isi kolom Action */
+td .action-content {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Jarak antara badge dan icon */
+}
+
+/* Ikon */
+td .action-content a {
+    margin-left: auto;
+    color: #333;
+    font-size: 18px;
+}
+
+/* BADGES */
+.badge {
+    display: inline-block;
+    min-width: 80px;       /* same width for all */
+    text-align: center;    /* center text inside */
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-weight: bold;
+}
+
+.badge.green { 
+    background-color: #b2f0d3; 
+    color: #007e49;
+}
+.badge.red { 
+    background-color: #ffc6c6; 
+    color: #a10000; 
+}
+.badge.yellow { 
+    background-color: #fff8b5; 
+    color: #9f8b00; 
+}
+
+/* VIEW ICON */
+.view-icon {
+    font-size: 18px;
+    color: #333;
+    margin-left: 5px;
+    cursor: pointer;
+}
+
+/* POP UP JOURNAL DETAIL */
+.popup-detail-overlay {
+    position: fixed;
+    padding: 0px 20%;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.popup-detail-content {
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 30px;
+    width: 100%;
+    max-width: 800px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    position: relative;
+    animation: popupFadeIn 0.25s ease-in-out;
+}
+
+/* Animasi masuk opsional */
+@keyframes popupFadeIn {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Tombol Close */
+.popup-close-btn {
+    position: absolute;
+    top: 12px;
+    right: 18px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+/* Tabel Detail Pop-up */
+.popup-detail-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 30px;
+}
+
+.popup-detail-table td {
+    padding: 10px 0px;
+    vertical-align: top;
+}
+
+.popup-detail-table tr:nth-child(even) {
+    background-color: #f4f4f4;
+}
+
+.popup-detail-table td:first-child {
+    font-weight: bold;
+    width: 200px;
+}
+
+.flash-message {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #4CAF50;
+    color: white;
+    padding: 16px 32px;
+    border-radius: 8px;
+    font-weight: bold;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    z-index: 9999;
+    opacity: 0;
+    animation: slideDown 0.5s ease-out forwards, fadeOut 0.5s ease-in 3.5s forwards;
+}
+
+/* === Approve/Reject Modal Styles === */
+#statusModal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .4);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+}
+
+#statusModal .modal-content {
+    background: #fff;
+    border-radius: 12px;
+    width: 320px;
+    padding: 18px 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .2);
+    position: relative;
+}
+
+#statusModal .close-btn {
+    position: absolute;
+    right: 10px;
+    top: 8px;
+    border: 0;
+    background: transparent;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+#statusModal h2 {
+    margin: 0 0 14px 0;
+    border-bottom: 2px solid #cfcfcf;
+}
+
+#statusModal .form-row {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+#statusModal label {
+    font-weight: 600;
+}
+
+#statusModal select {
+    padding: 8px 10px;
+    border: 1px solid #cfcfcf;
+    border-radius: 8px;
+    background: #eee;
+}
+
+#statusSave {
+    display: block;        /* lets us push it to the edge */
+    margin-left: auto;     /* right-align inside its container */
+    background: #3b82f6;
+    color: #fff;
+    border: 0;
+    border-radius: 8px;
+    padding: 9px 16px;
+    cursor: pointer;
+}
+
+#statusSave:hover {
+    background: #2563eb;
+}
+
+@keyframes slideDown {
+    0% {
+        opacity: 0;
+        transform: translate(-20%, -40px);
+    }
+    100% {
+        opacity: 1;
+        transform: translate(-20%, 0);
+    }
+}
+
+@keyframes fadeOut {
+    to {
+        opacity: 0;
+        transform: translate(-20%, -40px);
+    }
+}
+
+
+@media (max-width: 926px) {
+    .search-wrapper {
+        max-width: 328px;
+    }
+}
+
+@media (max-width: 750px) {
+    .search-wrapper {
+        max-width: 200px;
+    }
+}
+
+@media (max-width: 706px) {
+    .search-wrapper {
+        max-width: 328px;
+    }
+}

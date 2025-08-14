@@ -1,0 +1,148 @@
+.profile-container {
+    padding: 30px 60px;
+    border-radius: 20px;
+    margin-top: 30px;
+}
+
+.profile-header {
+    background-color: #3749A6;
+    padding: 10px 25px;
+    border-radius: 20px 20px 0 0;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.profile-header i {
+    font-size: 26px;
+    color: white;
+}
+
+.profile-header h1 {
+    font-size: 26px;
+    color: white;
+    margin: 0;
+    font-weight: bold;
+}
+
+.profile-content {
+    display: flex;
+    background-color: white;
+    padding: 30px;
+    border-radius: 0 0 20px 20px;
+}
+
+.profile-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-right: 50px;
+}
+
+.profile-photo {
+    width: 200px;
+    height: 250px;
+    border-radius: 20px;
+    object-fit: cover;
+    background-color: #ccc;
+}
+
+.edit-profile-btn {
+    margin-top: 18px;
+    padding: 8px 20px;
+    background-color: #ddd;
+    color: black;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.edit-profile-btn:hover {
+    background-color: #bbb;
+}
+
+.profile-right {
+    flex: 1;
+    padding-top: 20px;
+}
+
+.profile-right form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.form-group label {
+    width: 130px;
+    font-weight: 500;
+}
+
+.form-group input {
+    flex: 1;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    background-color: #f0f0f0;
+}
+
+.form-group input:disabled {
+    background-color: #eee;
+    color: #555;
+}
+
+.save-btn {
+    align-self: flex-end;
+    background-color: #ddd;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    color: #333;
+    margin-top: 22px;
+}
+
+.save-btn:hover {
+    background-color: #bbb;
+}
+
+/* notif berhasil safe */
+.flash-message {
+    position: fixed;
+    top: 30px;
+    left: 50%;
+    transform: translateX(-10%);
+    padding: 15px 30px;
+    background-color: #4CAF50; /* Green */
+    color: white;
+    font-weight: bold;
+    border-radius: 8px;
+    z-index: 9999;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    animation: slideIn 0.5s ease, fadeOut 0.5s ease 3s forwards;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-10%) translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-10%) translateY(0);
+    }
+}
+
+@keyframes fadeOut {
+    to {
+        opacity: 0;
+        transform: translateX(-10%) translateY(-20px);
+    }
+}
