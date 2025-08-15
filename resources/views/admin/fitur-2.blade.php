@@ -218,7 +218,7 @@
                                             <form action="{{ route('jurnal.destroy', $jurnal->id) }}" method="POST" style="display: inline;">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" onclick="return confirm('Yakin ingin menghapus jurnal ini?')" style="background: none; border: none; cursor: pointer;">
+                                                <button type="submit" onclick="return confirm('Yakin ingin menghapus jurnal ini?')" style="border: none; cursor: pointer; margin-left: 0px">
                                                     <i class="bi bi-trash-fill" style="font-size:18px;"></i>
                                                 </button>
                                             </form>

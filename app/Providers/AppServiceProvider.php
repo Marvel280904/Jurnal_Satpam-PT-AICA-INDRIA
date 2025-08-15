@@ -5,6 +5,7 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;   // <-- REQUIRED
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use App\Models\JurnalSatpam;
 use App\Models\Jadwal;
@@ -69,64 +70,59 @@ class AppServiceProvider extends ServiceProvider
                 }
 
                 // 3) Journal Late reminders
-                $shiftIdByName = Shift::pluck('id', 'nama_shift');          // ex: ['Shift Pagi' => 1, ...]
-                $lokasiNameById = Lokasi::pluck('nama_lokasi', 'id');        // ex: [3 => 'Kraton', ...]
+                $lokasiNameById = Lokasi::pluck('nama_lokasi', 'id'); // [1=>'Kraton', 2=>'Rembang', ...]
+                $shiftMap = Shift::get()->mapWithKeys(function ($s) {
+                    return [ $s->lokasi_id.'|'.$s->nama_shift => $s->id ];
+                });
 
-               
-                $firstScheduleDate = Jadwal::min('tanggal');                 // tanggal paling awal ada jadwal
-                if ($firstScheduleDate) {
-                    $rangeStart = Carbon::parse($firstScheduleDate);
-                    $rangeEnd   = $today->copy();
+                /** 
+                 * Ambil semua kombinasi unik (tanggal, lokasi_id, shift_nama) yang dijadwalkan
+                 * (boleh dari tanggal paling awal sampai hari ini).
+                 */
+                $expected = Jadwal::select('tanggal', 'lokasi_id', 'shift_nama')
+                    ->whereNotNull('lokasi_id')
+                    ->whereNotNull('shift_nama')
+                    ->whereDate('tanggal', '<=', Carbon::today()->toDateString())
+                    ->get()
+                    ->unique(fn ($r) => $r->tanggal.'|'.$r->lokasi_id.'|'.$r->shift_nama)
+                    ->values();
 
-                    
-                    $expected = Jadwal::select('tanggal', 'lokasi_id', 'shift_nama')
-                        ->whereBetween('tanggal', [$rangeStart->toDateString(), $rangeEnd->toDateString()])
-                        ->whereNotNull('lokasi_id')
-                        ->whereNotNull('shift_nama')
-                        ->get()
-                        // jadikan unik per (tanggal, lokasi_id, shift_nama)
-                        ->unique(function ($row) {
-                            return $row->tanggal.'|'.$row->lokasi_id.'|'.$row->shift_nama;
-                        })
-                        ->values();
+                /**
+                 * Set kombinasi yang SUDAH ada di jurnal: key = "tanggal|lokasi_id|shift_id"
+                 */
+                $existing = JurnalSatpam::select('tanggal', 'lokasi_id', 'shift_id')
+                    ->get()
+                    ->map(fn ($r) => $r->tanggal.'|'.$r->lokasi_id.'|'.$r->shift_id)
+                    ->flip(); // jadikan set
 
-                    
-                    $existing = JurnalSatpam::select('tanggal', 'lokasi_id', 'shift_id')
-                        ->whereBetween('tanggal', [$rangeStart->toDateString(), $rangeEnd->toDateString()])
-                        ->get()
-                        ->map(function($row){
-                            return $row->tanggal.'|'.$row->lokasi_id.'|'.$row->shift_id;
-                        })
-                        ->flip(); // untuk lookup cepat: key exists
+                foreach ($expected as $row) {
+                    $tanggal  = Carbon::parse($row->tanggal)->toDateString();  // pastikan format 'Y-m-d'
+                    $lokasiId = $row->lokasi_id;
+                    $shiftNm  = $row->shift_nama;
 
-                    
-                    foreach ($expected as $row) {
-                        $tanggal   = Carbon::parse($row->tanggal)->format('d F Y');
-                        $lokasiId  = $row->lokasi_id;
-                        $shiftName = $row->shift_nama;
-                        $shiftId   = $shiftIdByName[$shiftName] ?? null;
+                    // cari shift_id yang sesuai lokasi + nama shift
+                    $shiftId = $shiftMap[$lokasiId.'|'.$shiftNm] ?? null;
+                    if (!$shiftId) {
+                        // jika mapping tidak ketemu, lewati (hindari false-positive reminder)
+                        continue;
+                    }
 
-                        if (!$shiftId) {
-                            // jika ada shift_nama yang tidak dikenal di tabel shifts, skip
-                            continue;
-                        }
+                    $key = $tanggal.'|'.$lokasiId.'|'.$shiftId;
 
-                        $key = $row->tanggal.'|'.$lokasiId.'|'.$shiftId;
-                        if (!$existing->has($key)) {
-                            $lokasiNama = $lokasiNameById[$lokasiId] ?? '-';
+                    // jika kombinasi ini BELUM ada di jurnal, baru tampilkan reminder
+                    if (!$existing->has($key)) {
+                        $lokasiNama = $lokasiNameById[$lokasiId] ?? '-';
+                        $descDate   = Carbon::parse($tanggal)->translatedFormat('d F Y'); // 15 Agustus 2025
 
-                            $reminders[] = [
-                                'key'   => 'late-'.$row->tanggal.'-'.$lokasiId.'-'.$shiftId,
-                                'icon'  => 'bi-journal-plus',
-                                'title' => 'Journal Entry',
-                                'desc'  => "Jurnal untuk Tanggal {$tanggal} di {$lokasiNama} • {$shiftName} belum disubmit",
-                                'url'   => route('jurnal.submission')
-                            ];
-                        }
+                        $reminders[] = [
+                            'key'   => 'late-'.$tanggal.'-'.$lokasiId.'-'.$shiftId,
+                            'icon'  => 'bi-journal-plus',
+                            'title' => 'Journal Entry',
+                            'desc'  => "Jurnal untuk Tanggal {$descDate} di {$lokasiNama} • {$shiftNm} belum disubmit",
+                            'url'   => route('jurnal.submission'),
+                        ];
                     }
                 }
-
-                
 
                 $reminderCount = count($reminders);
 

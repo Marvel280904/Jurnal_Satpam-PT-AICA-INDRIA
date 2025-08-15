@@ -64,7 +64,7 @@ return new class extends Migration
         if (!Schema::hasTable('jurnal_satpams')) {
             Schema::create('jurnal_satpams', function (Blueprint $table) {
                 $table->id();
-                $table->dateTime('tanggal');              // datetime
+                $table->date('tanggal');              // date
                 $table->unsignedBigInteger('lokasi_id');  // FK -> lokasis.id
                 $table->unsignedBigInteger('shift_id');   // FK -> shifts.id
                 $table->unsignedBigInteger('user_id');    // FK -> satpams.id
