@@ -18,6 +18,14 @@
     <div class="user-role-container">
         <div class="user-role-header">
             <h1>User & Role Management</h1>
+
+            @if(session('success'))
+                <div id="flashToast" class="flash-toast {{ session('flash_type', 'success') }}">
+                    <span class="flash-dot"></span>
+                    <span class="flash-text">{{ session('success') }}</span>
+                    <button class="flash-close" onclick="document.getElementById('flashToast').classList.add('hide')">&times;</button>
+                </div>
+            @endif
         </div>
 
         <div class="user-role-controls">
@@ -51,13 +59,15 @@
                                 <td>{{ $user->username }}</td>
                                 <td>{{ $user->role }}</td>
                                 <td>
-                                    <button class="icon-btn" onclick="openEditUser({{ $user->id }}, '{{ $user->nama }}', '{{ $user->username }}', '{{ $user->password }}', '{{ $user->role }}')">
+                                    <button class="icon-btn" 
+                                        onclick="openEditUser({{ $user->id }}, '{{ e($user->nama) }}', '{{ e($user->username) }}', '{{ $user->role }}')">
                                         <i class="bi bi-pencil-square"></i>
                                     </button>
-                                    <form method="POST" action="{{ route('user.destroy', $user->id) }}" style="display:inline;">
+
+                                    <form method="POST" action="{{ route('user.destroy', $user->id) }}" style="display:inline;" class="delete-form">
                                         @csrf
                                         @method('DELETE')
-                                        <button class="icon-btn" onclick="return confirm('Yakin ingin menghapus user ini?')">
+                                        <button type="button" class="icon-btn delete-user-btn" data-user-name="{{ e($user->nama) }}">
                                             <i class="bi bi-trash-fill"></i>
                                         </button>
                                     </form>
@@ -66,6 +76,16 @@
                             @endforeach
                         </tbody>
                     </table>
+
+                    <div id="confirmDeleteModal" class="modal-overlay" style="display: none;">
+                        <div class="modal-content">
+                            <p id="confirmMessage">Yakin ingin menghapus jurnal ini?</p>
+                            <div class="modal-actions">
+                                <button id="cancelDeleteBtn" class="btn-cancel">Tidak</button>
+                                <button id="confirmDeleteBtn" class="btn-confirm-delete">Ya, Hapus</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             @endif
         </div>
@@ -76,16 +96,21 @@
         <div class="popup-content">
             <span class="close-btn" onclick="togglePopup('popup-add-user')">&times;</span>
             <h3>Tambah User</h3>
-            <form action="{{ route('user.store') }}" method="POST">
+            <form id="addUserForm" action="{{ route('user.store') }}" method="POST">
                 @csrf
-                <label>Nama User</label>
-                <input type="text" name="nama" required>
-                <label>Username</label>
-                <input type="text" name="username" required>
-                <label>Password</label>
-                <input type="text" name="password" required>
-                <label>Role</label>
+
+                <div id="addUserErrors" class="form-errors hide" style="display:none;"></div>
+
+                <label>Nama User <i class="bi bi-asterisk"></i> </label>
+                <input type="text" name="nama" required placeholder="Wajib diisi!">
+                <label>Username <i class="bi bi-asterisk"></i> </label>
+                <input type="text" name="username" required placeholder="Wajib diisi!" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+                <label>Password <i class="bi bi-asterisk"></i> </label>
+                <input type="password" name="password" required placeholder="Wajib diisi!" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+                <label>Role <i class="bi bi-asterisk"></i> </label>
                 <select name="role" required>
+                    <option value="" disabled selected>-- Wajib pilih role! --</option>
+                    <option value="Satpam">Admin</option>
                     <option value="Satpam">Satpam</option>
                     <option value="Kepala Satpam">Kepala Satpam</option>
                 </select>
@@ -99,20 +124,25 @@
         <div class="popup-content">
             <span class="close-btn" onclick="togglePopup('popup-edit-user')">&times;</span>
             <h3>Edit User</h3>
-            <form id="editUserForm" method="POST">
+
+            <form id="editUserForm" method="POST" >
                 @csrf
                 @method('PUT')
-                <label>Nama User</label>
+
+                <div id="editUserErrors" class="form-errors hide" style="display:none;"></div>
+
+                <label>Nama User <i class="bi bi-asterisk"></i> </label>
                 <input type="text" name="nama" id="editNama" required>
-                <label>Username</label>
-                <input type="text" name="username" id="editUsername" required>
-                <label>New Password</label>
-                <input type="password" name="password" id="editPassword" placeholder="Isi jika ingin ubah password">
-                <label>Role</label>
-                <select name="role" id="editRole" required>
-                    <option value="Satpam">Satpam</option>
-                    <option value="Kepala Satpam">Kepala Satpam</option>
-                </select>
+
+                <label>Username <i class="bi bi-asterisk"></i> </label>
+                <input type="text" name="username" id="editUsername" required autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+
+                <label>New Password <i class="bi bi-asterisk"></i> </label>
+                <input type="password" name="password" id="editPassword" placeholder="Isi jika ingin ubah password" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+
+                <label>Role <i class="bi bi-asterisk"></i> </label>
+                <select name="role" id="editRole" required></select>
+
                 <button type="submit">Save</button>
             </form>
         </div>
@@ -132,18 +162,24 @@
 
         <!-- Filter -->
         <div class="filter-bar">
-            <select id="filterLokasi" class="filter-input">
+            <select name="lokasi_nama" id="filterLokasi" class="filter-input">
                 <option value="">Location</option>
                 @foreach($lokasis as $lokasi)
-                    <option value="{{ strtolower(trim($lokasi->nama_lokasi)) }}">{{ $lokasi->nama_lokasi }}</option>
+                    <option value="{{ strtolower(trim($lokasi->nama_lokasi)) }}"
+                        @if($lokasi->is_active == 0) class="inactive-option" @endif>
+                        {{ $lokasi->nama_lokasi }} - status: {{ $lokasi->is_active ? 'Active' : 'Inactivate' }}
+                    </option>                
                 @endforeach
             </select>
 
             <select name="shift_nama" id="filterShift" class="filter-input">
                 <option value="">Shift</option>
-                <option value="Pagi" {{ request('shift_nama') == 'Pagi' ? 'selected' : '' }}>Pagi</option>
-                <option value="Siang" {{ request('shift_nama') == 'Siang' ? 'selected' : '' }}>Siang</option>
-                <option value="Malam" {{ request('shift_nama') == 'Malam' ? 'selected' : '' }}>Malam</option>
+                @foreach($shifts as $shift)
+                    <option value="{{ strtolower(trim($shift->nama_shift)) }}"
+                        @if($shift->is_active == 0) class="inactive-option" @endif>
+                        {{ $shift->nama_shift }} - status: {{ $shift->is_active ? 'Active' : 'Inactivate' }}
+                    </option>
+                @endforeach
             </select>
 
             <input type="date"  id="filterTanggal" name="tanggal" class="filter-input" value="{{ request('tanggal') }}">
@@ -154,18 +190,19 @@
             </div>
         </div>
 
-         <!-- Table -->
+        <!-- Table -->
         <div class="table-bg">
             <div class="table-container">
                 <table id="historytable">
                     <thead>
                         <tr>
-                            <th>Date</th>
-                            <th>Location</th>
-                            <th>Shift</th>
-                            <th>Name</th>
-                            <th>Role</th>
-                            <th>Status</th>
+                            <th class="col-date">Date</th>
+                            <th class="col-location">Location</th>
+                            <th class="col-shift">Shift</th>
+                            <th class="col-name">Name</th>
+                            <th class="col-role">Role</th>
+                            <th class="col-updated">Updated</th>
+                            <th class="col-status">Status</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -176,6 +213,7 @@
                                 <td>{{ $jurnal->shift->nama_shift ?? '-' }}</td>
                                 <td>{{ $jurnal->satpam->nama ?? '-' }}</td>
                                 <td>{{ $jurnal->satpam->role ?? '-' }}</td>
+                                <td>{{ $jurnal->updatedBySatpam->nama ?? '-' }}</td>
                                 <td>
                                     <div class="action-content">
                                         @php $status = strtolower($jurnal->status); @endphp
@@ -215,11 +253,11 @@
                                         </a>
 
                                         @if(Auth::user()->role === 'Kepala Satpam')
-                                            <form action="{{ route('jurnal.destroy', $jurnal->id) }}" method="POST" style="display: inline;">
+                                            <form action="{{ route('jurnal.destroy', $jurnal->id) }}" method="POST" style="display: inline;" class="delete-form">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" onclick="return confirm('Yakin ingin menghapus jurnal ini?')" style="border: none; cursor: pointer; margin-left: 0px">
-                                                    <i class="bi bi-trash-fill" style="font-size:18px;"></i>
+                                                <button type="button" class="delete-btn" style="background: none; border: none; cursor: pointer; margin-left: 0px; padding: 0;">
+                                                    <i class="bi bi-trash-fill" style="font-size:18px; color: #dc3545;"></i>
                                                 </button>
                                             </form>
                                         @endif
@@ -235,6 +273,16 @@
                         @endforelse
                     </tbody>
                 </table>
+
+                <div id="confirmDeleteModal" class="modal-overlay" style="display: none;">
+                    <div class="modal-content">
+                        <p id="confirmMessage">Yakin ingin menghapus jurnal ini?</p>
+                        <div class="modal-actions">
+                            <button id="cancelDeleteBtn" class="btn-cancel">Tidak</button>
+                            <button id="confirmDeleteBtn" class="btn-confirm-delete">Ya, Hapus</button>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Pop Up Journal Detail -->
                 <div id="popup-detail" class="popup-detail-overlay" style="display: none;">
@@ -281,10 +329,33 @@
         function openEditUser(id, nama, username, role) {
             const form = document.getElementById('editUserForm');
             form.action = `/user-role/${id}`;
-            document.getElementById('editNama').value = nama;
+
+            // isi field
+            document.getElementById('editNama').value     = nama;
             document.getElementById('editUsername').value = username;
             document.getElementById('editPassword').value = '';
-            document.getElementById('editRole').value = role;
+
+            // isi select role sesuai kondisi
+            const roleSelect = document.getElementById('editRole');
+            roleSelect.innerHTML = ''; // reset isi option
+
+            const addOpt = (val, text) => {
+                const opt = document.createElement('option');
+                opt.value = val;
+                opt.textContent = text;
+                if (role === val) opt.selected = true;
+                roleSelect.appendChild(opt);
+            };
+
+            if (role === 'Admin') {
+                addOpt('Admin', 'Admin');
+                addOpt('Kepala Satpam', 'Kepala Satpam');
+                addOpt('Satpam', 'Satpam');
+            } else {
+                addOpt('Kepala Satpam', 'Kepala Satpam');
+                addOpt('Satpam', 'Satpam');
+            }
+
             togglePopup('popup-edit-user');
         }
 
@@ -294,6 +365,139 @@
             rows.forEach(row => {
                 row.style.display = row.innerText.toLowerCase().includes(value) ? '' : 'none';
             });
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Logika untuk form Tambah/Edit User ---
+            const addUserForm = document.getElementById('addUserForm');
+            const editUserForm = document.getElementById('editUserForm');
+            const handleFormSubmit = async (form, errorContainerId) => {
+                const errorContainer = document.getElementById(errorContainerId);
+                let errorTimer;
+                if (errorContainer) {
+                    errorContainer.classList.remove('show', 'hide');
+                    errorContainer.style.display = 'none';
+                    errorContainer.innerHTML = '';
+                }
+                clearTimeout(errorTimer);
+                const submitButton = form.querySelector('button[type="submit"]');
+                const originalBtnText = submitButton.innerHTML;
+                submitButton.disabled = true;
+                submitButton.innerHTML = 'Menyimpan...';
+                try {
+                    const formData = new FormData(form);
+                    const spoof = form.querySelector('input[name="_method"]');
+                    if (spoof) formData.set('_method', spoof.value);
+                    const response = await fetch(form.action, {
+                        method: 'POST',
+                        headers: { 'X-CSRF-TOKEN': formData.get('_token'), 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                        body: formData
+                    });
+                    const data = await response.json();
+                    if (!response.ok) {
+                        if (data && data.errors) {
+                            let errorHtml = '<ul>';
+                            Object.values(data.errors).forEach(msgs => {
+                                msgs.forEach(msg => errorHtml += `<li>${msg}</li>`);
+                            });
+                            errorHtml += '</ul>';
+                            errorContainer.innerHTML = errorHtml;
+                            errorContainer.classList.add('show');
+                            errorTimer = setTimeout(() => {
+                                errorContainer.classList.remove('show');
+                                errorContainer.classList.add('hide');
+                            }, 5000);
+                        }
+                        return;
+                    }
+                    if (data.success) {
+                        window.location.href = data.redirect_url || window.location.href;
+                    }
+                } catch (err) {
+                    console.error(err);
+                    errorContainer.innerHTML = '<ul><li>Terjadi kesalahan jaringan.</li></ul>';
+                    errorContainer.style.display = 'block';
+                } finally {
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = originalBtnText;
+                }
+            };
+
+            if (addUserForm) {
+                addUserForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    handleFormSubmit(addUserForm, 'addUserErrors');
+                });
+            }
+            if (editUserForm) {
+                editUserForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    handleFormSubmit(editUserForm, 'editUserErrors');
+                });
+            }
+
+            // --- Logika untuk Popup Konfirmasi Hapus User ---
+            const deleteModal = document.getElementById('confirmDeleteModal');
+            if (deleteModal) {
+                const modalContent = deleteModal.querySelector('.modal-content');
+                const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+                const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+                const confirmMessage = document.getElementById('confirmMessage');
+                const deleteUserButtons = document.querySelectorAll('.delete-user-btn');
+
+                let userFormToSubmit = null;
+                
+                function showDeleteModal() {
+                    deleteModal.style.display = 'flex';
+                    modalContent.classList.remove('hide');
+                    modalContent.classList.add('show');
+                }
+
+                function hideDeleteModal() {
+                    modalContent.classList.remove('show');
+                    modalContent.classList.add('hide');
+                    modalContent.addEventListener('animationend', function handler() {
+                        deleteModal.style.display = 'none';
+                        userFormToSubmit = null;
+                        modalContent.removeEventListener('animationend', handler);
+                    }, { once: true });
+                }
+
+                deleteUserButtons.forEach(button => {
+                    button.addEventListener('click', function(event) {
+                        event.preventDefault();
+                        userFormToSubmit = this.closest('form');
+                        const userName = this.getAttribute('data-user-name');
+                        confirmMessage.textContent = `Yakin ingin menghapus user "${userName}"?`;
+                        showDeleteModal();
+                    });
+                });
+
+                cancelDeleteBtn.addEventListener('click', hideDeleteModal);
+
+                confirmDeleteBtn.addEventListener('click', () => {
+                    confirmDeleteBtn.disabled = true;
+                    confirmDeleteBtn.innerHTML = 'Deleting...';
+
+                    if (userFormToSubmit) {
+                        userFormToSubmit.submit();
+                    } else {
+                        hideDeleteModal();
+                    }
+                });
+
+                deleteModal.addEventListener('click', (event) => {
+                    if (event.target === deleteModal) {
+                        hideDeleteModal();
+                    }
+                });
+            }
+
+            // --- Logika untuk Toast Notifikasi (HANYA ADA SATU) ---
+            const toast = document.getElementById('flashToast');
+            if (toast) {
+                setTimeout(() => toast.classList.add('hide'), 3500);
+            }
         });
     </script>
 @elseif ($role === 'Kepala Satpam')
@@ -377,7 +581,7 @@
             filterTable();
         });
 
-        //// pop up journal detail
+        //// POP UP JOURNAL DETAIL
         document.addEventListener("DOMContentLoaded", function () {
             // === POPUP DETAIL FUNCTIONALITY ===
             const detailButtons = document.querySelectorAll('.view-detail-btn');
@@ -397,15 +601,15 @@
                             year: 'numeric', month: 'long', day: 'numeric'
                         })],
                         ['Cuaca', format(jurnal.cuaca)],
-                        ['Laporan Kejadian/Temuan', format(jurnal.kejadian)],
+                        ['Laporan Kejadian/Temuan', format(jurnal.kejadian_temuan)],
                         ['Lembur', format(jurnal.lembur)],
-                        ['Proyek/Vendor', format(jurnal.proyek)],
-                        ['Paket/Dokumen', format(jurnal.paket)],
-                        ['Tamu Belum Keluar', format(jurnal.tamu)],
-                        ['Karyawan Dinas Luar', format(jurnal.karyawan)],
-                        ['Barang Inventaris Keluar', format(jurnal.barang)],
-                        ['Kendaraan Dinas Luar', format(jurnal.kendaraan)],
-                        ['Lampu/Penerangan Mati', format(jurnal.lampu)],
+                        ['Proyek/Vendor', format(jurnal.proyek_vendor)],
+                        ['Paket/Dokumen', format(jurnal.paket_dokumen)],
+                        ['Tamu Belum Keluar', format(jurnal.tamu_belum_keluar)],
+                        ['Karyawan Dinas Luar', format(jurnal.karyawan_dinas_keluar)],
+                        ['Barang Inventaris Keluar', format(jurnal.barang_keluar)],
+                        ['Kendaraan Dinas Luar', format(jurnal.kendaraan_dinas_keluar)],
+                        ['Lampu/Penerangan Mati', format(jurnal.lampu_mati)],
                         ['Informasi Tambahan', format(jurnal.info_tambahan)],
                     ];
 
@@ -417,7 +621,7 @@
                     if (jurnal.uploads && jurnal.uploads.length > 0) {
                         html += `<tr><td><strong>Lampiran</strong></td><td>:</td><td>`;
                         jurnal.uploads.forEach(file => {
-                            html += `<a href="/storage/${file.file_path}" target="_blank" style="margin-right:5px;">
+                            html += `<a href="{{ asset('${file.file_path}') }}" target="_blank" style="margin-right:5px; color:white;">
                                         <i class="bi bi-file-earmark-arrow-down-fill" style="color:red;font-size:20px;"></i>
                                     </a>`;
                         });
@@ -499,6 +703,69 @@
             document.getElementById('popup-detail').style.display = 'none';
         }
 
+        // ===== SCRIPT UNTUK POPUP KONFIRMASI HAPUS =====
+        document.addEventListener('DOMContentLoaded', function() {
+            const modalOverlay = document.getElementById('confirmDeleteModal');
+            if (!modalOverlay) return; // Hentikan jika modal tidak ada
+
+            const modalContent = modalOverlay.querySelector('.modal-content');
+            const cancelBtn = document.getElementById('cancelDeleteBtn');
+            const confirmBtn = document.getElementById('confirmDeleteBtn');
+            const deleteButtons = document.querySelectorAll('.delete-btn');
+            
+            let formToSubmit = null;
+
+            // Fungsi untuk menampilkan modal dengan animasi
+            function showModal() {
+                modalOverlay.style.display = 'flex';
+                modalContent.classList.remove('hide');
+                modalContent.classList.add('show');
+            }
+
+            // Fungsi untuk menyembunyikan modal dengan animasi
+            function hideModal() {
+                modalContent.classList.remove('show');
+                modalContent.classList.add('hide');
+
+                // Tunggu animasi selesai, baru sembunyikan overlay-nya
+                modalContent.addEventListener('animationend', function handler() {
+                    modalOverlay.style.display = 'none';
+                    formToSubmit = null; // Reset form
+                    // Hapus event listener agar tidak menumpuk
+                    modalContent.removeEventListener('animationend', handler); 
+                });
+            }
+            
+            deleteButtons.forEach(button => {
+                button.addEventListener('click', function(event) {
+                    event.preventDefault(); 
+                    formToSubmit = this.closest('form'); 
+                    showModal(); // Panggil fungsi untuk menampilkan
+                });
+            });
+
+            cancelBtn.addEventListener('click', hideModal);
+
+            confirmBtn.addEventListener('click', function() {
+                // 1. Langsung ubah tombol menjadi state "loading"
+                confirmBtn.disabled = true;
+                confirmBtn.innerHTML = 'Deleting...';
+
+                // 2. Lanjutkan proses submit form
+                if (formToSubmit) {
+                    formToSubmit.submit(); 
+                } else {
+                    hideModal();
+                } 
+            });
+            
+            modalOverlay.addEventListener('click', function(event) {
+                if (event.target === modalOverlay) {
+                    hideModal();
+                }
+            });
+        });
+
         document.addEventListener('DOMContentLoaded', function () {
             const flash = document.getElementById('flashMessage');
             if (flash) {
@@ -577,15 +844,15 @@
                             year: 'numeric', month: 'long', day: 'numeric'
                         })],
                         ['Cuaca', format(jurnal.cuaca)],
-                        ['Laporan Kejadian/Temuan', format(jurnal.kejadian)],
+                        ['Laporan Kejadian/Temuan', format(jurnal.kejadian_temuan)],
                         ['Lembur', format(jurnal.lembur)],
-                        ['Proyek/Vendor', format(jurnal.proyek)],
-                        ['Paket/Dokumen', format(jurnal.paket)],
-                        ['Tamu Belum Keluar', format(jurnal.tamu)],
-                        ['Karyawan Dinas Luar', format(jurnal.karyawan)],
-                        ['Barang Inventaris Keluar', format(jurnal.barang)],
-                        ['Kendaraan Dinas Luar', format(jurnal.kendaraan)],
-                        ['Lampu/Penerangan Mati', format(jurnal.lampu)],
+                        ['Proyek/Vendor', format(jurnal.proyek_vendor)],
+                        ['Paket/Dokumen', format(jurnal.paket_dokumen)],
+                        ['Tamu Belum Keluar', format(jurnal.tamu_belum_keluar)],
+                        ['Karyawan Dinas Luar', format(jurnal.karyawan_dinas_keluar)],
+                        ['Barang Inventaris Keluar', format(jurnal.barang_keluar)],
+                        ['Kendaraan Dinas Luar', format(jurnal.kendaraan_dinas_keluar)],
+                        ['Lampu/Penerangan Mati', format(jurnal.lampu_mati)],
                         ['Informasi Tambahan', format(jurnal.info_tambahan)],
                     ];
 

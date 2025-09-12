@@ -13,7 +13,7 @@ class JurnalSatpam extends Model
         'is_paket_dokumen', 'paket_dokumen', 'is_tamu_belum_keluar', 'tamu_belum_keluar',
         'is_karyawan_dinas_keluar', 'karyawan_dinas_keluar', 'is_barang_keluar', 'barang_keluar',
         'is_kendaraan_dinas_keluar', 'kendaraan_dinas_keluar', 'is_lampu_mati', 'lampu_mati',
-        'info_tambahan', 'status'
+        'info_tambahan', 'status', 'updated_by'
     ];
 
     public function satpam()
@@ -47,6 +47,11 @@ class JurnalSatpam extends Model
             'user_id' // Local key on log_loc_shifts
         )->whereColumn('log_loc_shifts.shift_id', 'jurnal_satpams.shift_id')
         ->whereDate('log_loc_shifts.tanggal', '=', DB::raw('jurnal_satpams.tanggal'));
+    }
+
+    public function updatedBySatpam()
+    {
+        return $this->belongsTo(Satpam::class, 'updated_by');
     }
 
 }

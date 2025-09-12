@@ -6,80 +6,138 @@ use App\Models\Satpam;
 use App\Models\RecentActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
     // Tampilkan halaman utama user & role management
     public function index()
     {
-        $users = Satpam::where('role', '!=', 'Admin')->get();
+        $users = Satpam::whereIn('role', ['Admin', 'Kepala Satpam', 'Satpam'])
+            ->orderBy('role')
+            ->orderBy('nama')
+            ->get();
+
         return view('admin.fitur-2', compact('users'));
     }
 
     // Store user baru
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'nama' => 'required|string|max:255',
-            'username' => 'required|string|max:255|unique:satpams',
+        $rules = [
+            'nama'     => 'required|string|max:255',
+            'username' => 'required|string|max:255|unique:satpams,username',
             'password' => 'required|string|min:6',
-            'role' => 'required|string',
-        ]);
+            'role'     => 'required|string',
+        ];
+
+        $messages = [
+            'username.unique'   => 'Username sudah ada',
+            'nama.required'     => 'Nama wajib diisi',
+            'username.required' => 'Username wajib diisi',
+            'password.required' => 'Password wajib diisi',
+            'password.min'      => 'Password minimal 6 karakter',
+            'role.required'     => 'Role wajib dipilih',
+        ];
+
+        $validator = Validator::make($request->all(), $rules, $messages);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $validated = $validator->validated();
 
         Satpam::create([
-            'nama' => $validated['nama'],
+            'nama'     => $validated['nama'],
             'username' => $validated['username'],
             'password' => Hash::make($validated['password']),
-            'role' => $validated['role'],
+            'role'     => $validated['role'],
         ]);
 
         RecentActivity::create([
-            'user_id' => auth()->id(),
+            'user_id'     => auth()->id(),
             'description' => 'Menambah User: ' . $validated['nama'],
-            'severity' => 'info'
+            'severity'    => 'info'
         ]);
 
-        return redirect()->route('user.index');
+        session()->flash('success', 'User berhasil ditambahkan.');
+        session()->flash('flash_type', 'success');
+
+        return response()->json([
+            'success'      => true,
+            'redirect_url' => route('user.index') 
+        ]);
     }
 
-    // update/edit user
+     // Edit/Update user
     public function update(Request $request, $id)
     {
-        $validated = $request->validate([
-            'nama' => 'required|string|max:255',
-            'username' => 'required|string|max:255|unique:satpams,username,' . $id,
-            'password' => 'nullable|string|min:6', // ✔️ buat nullable
-            'role' => 'required|string',
-        ]);
-
         $user = Satpam::findOrFail($id);
 
-        // Update field dasar
-        $user->nama = $validated['nama'];
-        $user->username = $validated['username'];
-        $user->role = $validated['role'];
+        $rules = [
+            'nama'     => 'required|string|max:255',
+            'username' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('satpams', 'username')->ignore($user->id),
+            ],
+            'password' => 'nullable|string|min:6',
+            'role'     => 'required|string',
+        ];
 
-        // ✔️ Hanya update password jika diisi
-        if (!empty($validated['password'])) {
-            $user->password = \Hash::make($validated['password']);
+        $messages = [
+            'username.unique'   => 'Username sudah ada',
+            'nama.required'     => 'Nama wajib diisi',
+            'username.required' => 'Username wajib diisi',
+            'password.min'      => 'Password minimal 6 karakter',
+            'role.required'     => 'Role wajib dipilih',
+        ];
+
+        $validator = Validator::make($request->all(), $rules, $messages);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
         }
 
+        $validated = $validator->validated();
+
+        $user->nama     = $validated['nama'];
+        $user->username = $validated['username'];
+        $user->role     = $validated['role'];
+
+        if (!empty($validated['password'])) {
+            $user->password = Hash::make($validated['password']);
+        }
         $user->save();
 
         RecentActivity::create([
-            'user_id' => auth()->id(),
+            'user_id'     => auth()->id(),
             'description' => 'Edit Data User: ' . $validated['nama'],
-            'severity' => 'info'
+            'severity'    => 'info'
         ]);
 
-        return redirect()->route('user.index');
+        session()->flash('success', 'User berhasil diupdate.');
+        session()->flash('flash_type', 'success');
+        
+        return response()->json([
+            'success'      => true,
+            'redirect_url' => route('user.index')
+        ]);
     }
-
 
     // Hapus user
     public function destroy($id)
     {
         $user = Satpam::findOrFail($id);
+
+        // ❗ Blokir penghapusan super user
+        if (strtolower($user->username) === 'admin' || $user->nama === 'Administrator') {
+            return redirect()->back()
+                ->with('flash_type', 'error')
+                ->with('success', 'User Administrator tidak boleh dihapus.');
+        }
+
         $userName = $user->nama;
         $user->delete();
 
@@ -89,6 +147,8 @@ class UserController extends Controller
             'severity' => 'warning'
         ]);
 
-        return redirect()->back()->with('success', 'User berhasil dihapus.');
+        return redirect()->back()
+            ->with('flash_type', 'success')
+            ->with('success', 'User berhasil dihapus.');
     }
 }

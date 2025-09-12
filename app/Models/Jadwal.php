@@ -14,9 +14,11 @@ class Jadwal extends Model
     protected $fillable = [
         'tanggal',
         'lokasi_id',
-        'shift_nama',
+        'shift_id',
         'user_id',
         'status',
+        'created_by',
+        'updated_by',
     ];
 
     public function satpam()
@@ -27,5 +29,20 @@ class Jadwal extends Model
     public function lokasi()
     {
         return $this->belongsTo(Lokasi::class, 'lokasi_id');
+    }
+
+    public function shift()
+    {
+        return $this->belongsTo(Shift::class, 'shift_id');
+    }
+
+    public function createdBySatpam()
+    {
+        return $this->belongsTo(Satpam::class, 'created_by');
+    }
+
+    public function updatedBySatpam()
+    {
+        return $this->belongsTo(Satpam::class, 'updated_by');
     }
 }

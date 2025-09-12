@@ -26,10 +26,7 @@ class SatpamDashboardController extends Controller
 
         // Siapkan $lokasi dan $shift untuk blade
         $lokasi = $jadwal?->lokasi; // null kalau tidak ada
-        // shift_nama di tabel jadwals berisi "Shift Pagi/Shift Siang/Shift Malam"
-        $shift  = $jadwal
-            ? Shift::where('nama_shift', $jadwal->shift_nama)->first()
-            : null;
+        $shift = $jadwal?->shift;
 
         // Jurnal terakhir user ini (opsional, tetap seperti punya Anda)
         $latestJournal = JurnalSatpam::where('user_id', $user->id)

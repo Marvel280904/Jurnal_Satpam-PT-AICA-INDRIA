@@ -20,21 +20,27 @@ class KepalaSatpamController extends Controller
         // Ambil tanggal hari ini sesuai timezone aplikasi
         $today = now(Config::get('app.timezone', 'UTC'))->toDateString();
 
-        // Ambil filter shift dari query string, default "Shift Pagi"
-        $shiftFilter = $request->input('shift', 'Shift Pagi');
+        // Perbaikan: Ambil semua shift yang aktif untuk dropdown filter
+        $shifts = Shift::where('is_active', 1)->orderBy('id')->get();
+        
+        // Perbaikan: Ambil shift pertama sebagai default jika tidak ada filter yang dipilih
+        $defaultShiftId = $shifts->isNotEmpty() ? $shifts->first()->id : null;
+        
+        // Perbaikan: Ambil filter dari request berdasarkan 'shift_id', bukan 'shift'
+        $shiftFilterId = $request->input('shift_id', $defaultShiftId);
 
-        // Query jadwal untuk hari ini
-        $query = Jadwal::with(['satpam', 'lokasi'])
+        // Query jadwal untuk hari ini, eager load relasi shift
+        $query = Jadwal::with(['satpam', 'lokasi', 'shift']) // Perbaikan: Eager load relasi shift
             ->whereDate('tanggal', $today);
 
-        // Terapkan filter shift jika ada
-        if (!empty($shiftFilter)) {
-            $query->where('shift_nama', $shiftFilter);
+        // Perbaikan: Terapkan filter berdasarkan shift_id
+        if (!empty($shiftFilterId)) {
+            $query->where('shift_id', $shiftFilterId);
         }
 
         $jadwals = $query
             ->orderBy('lokasi_id')
-            ->orderBy('shift_nama')
+            ->orderBy('shift_id') // Perbaikan: Order by shift_id
             ->get();
 
         // Status Pengisian Jurnal (hari ini)
@@ -52,7 +58,8 @@ class KepalaSatpamController extends Controller
             'jadwals',
             'jurnalToday',
             'jurnalHistory',
-            'shiftFilter'
+            'shifts',          // Perbaikan: Kirim data shifts ke view
+            'shiftFilterId'    // Perbaikan: Kirim shift_id yang aktif ke view
         ));
     }
 }

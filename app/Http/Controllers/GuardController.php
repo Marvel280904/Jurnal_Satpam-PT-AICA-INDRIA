@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Satpam;
+use App\Models\Shift;
 use App\Models\Lokasi;
 use App\Models\Jadwal;
 use Carbon\Carbon;
@@ -12,21 +13,18 @@ class GuardController extends Controller
 {
     public function index(Request $request)
     {
-        $lokasis = Lokasi::all();
+        $lokasis = Lokasi::where('is_active', 1)->get();
+        $shifts = Shift::where('is_active', 1)->get();
         $satpams = Satpam::where('role','Satpam')->get(); // needed by the modal list
 
-        $query = Jadwal::with(['satpam', 'lokasi']);
+        $query = Jadwal::with(['satpam', 'lokasi', 'shift', 'createdBySatpam', 'updatedBySatpam']);
 
         if ($request->filled('lokasi_id')) {
             $query->where('lokasi_id', $request->lokasi_id);
         }
 
-        if ($request->filled('shift')) {
-            // On the main table you used "Pagi/Siang/Malam" or full "Shift Pagi"?
-            // The column holds full string (Shift Pagi/Shift Siang/Shift Malam), so normalize:
-            $map = ['Pagi' => 'Shift Pagi', 'Siang' => 'Shift Siang', 'Malam' => 'Shift Malam'];
-            $shiftNama = $map[$request->shift] ?? $request->shift;
-            $query->where('shift_nama', $shiftNama);
+        if ($request->filled('shift_id')) {
+            $query->where('shift_id', $request->shift_id);
         }
 
         if ($request->filled('search')) {
@@ -45,20 +43,27 @@ class GuardController extends Controller
 
         $jadwals = $query->get();
 
-        return view('admin.fitur-3', compact('jadwals', 'lokasis', 'satpams'));
+        return view('admin.fitur-3', compact('jadwals', 'lokasis', 'satpams', 'shifts'));
     }
 
     public function update(Request $request, $id)
     {
         $jadwal = Jadwal::findOrFail($id);
+        $loggedInUserId = auth()->id();
 
         $jadwal->update([
             'lokasi_id'  => $request->lokasi_id ?: null,
-            'shift_nama' => $request->shift_nama ?: null,
+            'shift_id' => $request->shift_id ?: null,
             'status'     => $request->status ?: 'Off Duty',
+            'updated_by' => $loggedInUserId,
         ]);
 
-        return response()->json(['success' => true]);
+        $updatedByName = $jadwal->fresh()->updatedBySatpam->nama ?? '-';
+
+        return response()->json([
+            'success'         => true,
+            'updated_by_name' => $updatedByName // Kirim nama kembali ke frontend
+        ]);
     }
 
     // ===== modal helpers =====
@@ -92,21 +97,24 @@ class GuardController extends Controller
 
         $jadwalBatch = [];
         $now = now();
+        $loggedInUserId = auth()->id();
 
         for ($date = $start->copy(); $date->lte($end); $date->addDay()) {
             $tanggal = $date->format('Y-m-d');
 
             foreach ($assignments as $lokasiId => $shifts) {
-                foreach ($shifts as $shiftNama => $userIds) {
+                foreach ($shifts as $shiftId => $userIds) {
                     foreach ($userIds as $userId) {
                         $jadwalBatch[] = [
                             'tanggal'   => $tanggal,
                             'lokasi_id' => $lokasiId !== "null" ? $lokasiId : null,
-                            'shift_nama'=> $shiftNama !== "null" ? $shiftNama : null,
+                            'shift_id'=> $shiftId  !== "null" ? $shiftId  : null,
                             'user_id'   => $userId,
-                            'status'    => 'Off Duty',
+                            'status'    => 'On Duty',
                             'created_at'=> $now,
                             'updated_at'=> $now,
+                            'created_by' => $loggedInUserId,
+                            'updated_by' => null
                         ];
                     }
                 }
@@ -118,6 +126,7 @@ class GuardController extends Controller
         }
 
         Jadwal::insert($jadwalBatch);
+        session()->flash('success', 'Jadwal berhasil disimpan!');
         return response()->json(['success' => true]);
     }
 }

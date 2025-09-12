@@ -40,10 +40,9 @@
 .satpam-card {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     border-bottom: 1px solid #eee;
     padding: 10px 0;
-    gap: 10px;
+    gap: 15px;
 }
 
 .satpam-card img {
@@ -52,11 +51,26 @@
     border-radius: 50%;
     object-fit: cover;
 }
-
 .satpam-info {
+    display: flex;       /* Membuat gambar dan nama sejajar */
+    align-items: center; 
+    gap: 10px;           /* Jarak antara gambar dan nama */
+    flex: 1;             /* Mengambil ruang sebanyak mungkin */
+    min-width: 0;        /* Mencegah teks meluap */
+}
+
+.satpam-info-loc {
     display: flex;
     align-items: center;
     gap: 8px;
+    flex-shrink: 0; /* Mencegah elemen ini menyusut */
+    flex: 0.5;
+}
+
+/* Tambahkan aturan baru ini untuk status */
+.satpam-info-status {
+    margin-left: auto; /* Mendorong status ke paling kanan */
+    flex-shrink: 0;    /* Mencegah status menyusut */
 }
 
 .lokasi-info {
@@ -82,7 +96,6 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
 }
 
 .header-row select{
@@ -138,6 +151,9 @@
     border-bottom: 1px solid #ddd;
 }
 
+.col-date    { width: 21%;} 
+.col-location{ width: 17%; }
+
 .row-white { background-color: #fff; }
 .row-grey { background-color: #f7f7f7; }
 
@@ -152,13 +168,14 @@
         flex-wrap: wrap; /* Supaya elemen bisa pindah baris */
     }
 
-    .satpam-info {
-        flex: 1; /* Ambil sisa ruang yang tersedia */
-        min-width: 150px; /* Batas minimum supaya nggak terlalu sempit */
-    }
-
     .badge {
         margin-top: 5px; /* Kasih jarak kalau pindah ke bawah */
+    }
+}
+
+@media (max-width: 1004px) {
+    .satpam-info-loc {
+        flex: 0.73;
     }
 }
 

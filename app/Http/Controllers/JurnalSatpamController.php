@@ -7,16 +7,140 @@ use App\Models\Lokasi;
 use App\Models\Shift;
 use App\Models\JurnalSatpam;
 use App\Models\Upload;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\File;
 
 class JurnalSatpamController extends Controller
 {
     public function create()
     {
-        $lokasis = Lokasi::where('is_active', 1)->get();
-        $shifts = Shift::all();
-        return view('admin.fitur-1', compact('lokasis', 'shifts'));
+        $user = Auth::user();
+    
+        // Siapkan data untuk view di awal agar tidak berulang
+        $viewData = [
+            'lokasis' => Lokasi::where('is_active', 1)->get(),
+            'shifts' => Shift::where('is_active', 1)->get(),
+        ];
+
+        // ===================================================================
+        // Pengecekan hanya berlaku untuk role 'Satpam'
+        // Kepala Satpam atau role lain bisa langsung lolos.
+        // ===================================================================
+        if ($user->role !== 'Satpam') {
+            return view('admin.fitur-1', $viewData);
+        }
+        
+        // ===================================================================
+        // PENGECEKAN #1: Satpam yang login harus punya jadwal hari ini
+        // ===================================================================
+        $now = now();
+        $today = now()->today();
+        $todaysJadwal = \App\Models\Jadwal::where('user_id', $user->id)
+                                          ->whereDate('tanggal', $today)
+                                          ->first();
+
+        if (!$todaysJadwal) {
+            session()->flash('flash_notification', [
+                'type' => 'warning',
+                'message' => 'Anda tidak memiliki jadwal kerja hari ini!'
+            ]);
+            return view('admin.fitur-1', $viewData);
+        }
+
+        // ===================================================================
+        // PENGECEKAN #2: Jurnal shift sebelumnya harus sudah terisi
+        // (Berdasarkan jurnal terakhir di database)
+        // ===================================================================
+
+        $currentUserLokasiId = $todaysJadwal->lokasi_id;
+        $currentUserLokasi = Lokasi::find($currentUserLokasiId);
+
+        $latestJurnalForLocation = JurnalSatpam::where('lokasi_id', $currentUserLokasiId)
+                                            ->orderBy('tanggal', 'desc')
+                                            ->latest()
+                                            ->first();
+
+        if ($latestJurnalForLocation) {
+            $activeShifts = Shift::where('is_active', 1)->orderBy('mulai_shift')->get();
+
+            if ($activeShifts->count() > 1) {
+                $latestShiftId = $latestJurnalForLocation->shift_id;
+                $latestShiftIndex = $activeShifts->search(fn($shift) => $shift->id == $latestShiftId);
+                
+                if ($latestShiftIndex !== false) {
+                    $nextShiftIndex = ($latestShiftIndex + 1) % $activeShifts->count();
+                    $nextShift = $activeShifts[$nextShiftIndex];
+                    
+                    $nextDate = \Carbon\Carbon::parse($latestJurnalForLocation->tanggal);
+                    if ($nextShiftIndex == 0) {
+                        $nextDate->addDay();
+                    }
+
+                    $nextJurnalExists = JurnalSatpam::where('shift_id', $nextShift->id)
+                                                    ->where('lokasi_id', $currentUserLokasiId)
+                                                    ->whereDate('tanggal', $nextDate)->exists();
+                    
+                    if (!$nextJurnalExists) {
+                        // 1. Cari tahu siapa penanggung jawab shift yang terlewat.
+                        $jadwalMissedShift = \App\Models\Jadwal::whereDate('tanggal', $nextDate)
+                                                        ->where('shift_id', $nextShift->id)
+                                                        ->where('lokasi_id', $currentUserLokasiId)
+                                                        ->first();
+                        $responsibleUserId = $jadwalMissedShift->user_id ?? null;
+
+                        // 2. ATURAN PENGECUALIAN:
+                        // Jika user yang login adalah penanggung jawab, JANGAN BLOKIR DIA.
+                        // Tanda '!' di awal berarti "jika TIDAK".
+                        if (!$responsibleUserId || $responsibleUserId != $user->id) {                            
+                            // 3. Untuk semua user LAIN, jalankan pengecekan dampak.
+                            $currentUserSchedule = \App\Models\Jadwal::where('user_id', $user->id)
+                                ->where('lokasi_id', $currentUserLokasiId)
+                                ->where('tanggal', '>=', now()->toDateString())
+                                ->join('shifts', 'jadwals.shift_id', '=', 'shifts.id')
+                                ->orderBy('tanggal', 'asc')
+                                ->orderBy('shifts.mulai_shift', 'asc')
+                                ->select('jadwals.*')
+                                ->first();
+
+                            $isUserAffected = false;
+                            if ($currentUserSchedule) {
+                                $userScheduleDate = \Carbon\Carbon::parse($currentUserSchedule->tanggal);
+                                
+                                // Jika jadwal user jatuh pada hari SETELAH shift yang terlewat
+                                if ($userScheduleDate->gt($nextDate)) {
+                                    $isUserAffected = true;
+                                } 
+                                // Jika di hari yang SAMA, cek urutan shiftnya
+                                elseif ($userScheduleDate->isSameDay($nextDate)) {
+                                    $missedShiftIndexInSequence = $activeShifts->search(fn($s) => $s->id == $nextShift->id);
+                                    $userShiftIndexInSequence = $activeShifts->search(fn($s) => $s->id == $currentUserSchedule->shift_id);
+
+                                    if ($userShiftIndexInSequence > $missedShiftIndexInSequence) {
+                                        $isUserAffected = true;
+                                    }
+                                }
+                            }
+                            
+                            // 4. Jika user lain tersebut terdampak, baru BLOKIR.
+                            if ($isUserAffected) {
+                                $formattedDate = $nextDate->format('d F Y');
+                                $message = "Jurnal {$currentUserLokasi->nama_lokasi} - {$nextShift->nama_shift} ({$formattedDate}) belum disubmit.";
+                                // dd($responsibleUserId);
+                                session()->flash('flash_notification', [
+                                    'type' => 'warning',
+                                    'message' => $message
+                                ]);
+                                return view('admin.fitur-1', $viewData);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Jika semua pengecekan untuk Satpam lolos, tampilkan halaman form
+        return view('admin.fitur-1', $viewData);
     }
 
     public function store(Request $request)
@@ -33,8 +157,8 @@ class JurnalSatpamController extends Controller
         // Daftar item isian yang harus dicek jika "yes"
         $items = [
             'kejadian_temuan', 'lembur', 'proyek_vendor', 'paket_dokumen',
-            'tamu_belum_keluar', 'karyawan_dinas_luar', 'barang_inventaris_keluar',
-            'kendaraan_dinas_luar', 'lampu_mati'
+            'tamu_belum_keluar', 'karyawan_dinas_keluar', 'barang_keluar',
+            'kendaraan_dinas_keluar', 'lampu_mati'
         ];
 
         foreach ($items as $item) {
@@ -65,27 +189,42 @@ class JurnalSatpamController extends Controller
             'paket_dokumen' => $request->paket_dokumen,
             'is_tamu_belum_keluar' => $request->is_tamu_belum_keluar,
             'tamu_belum_keluar' => $request->tamu_belum_keluar,
-            'is_karyawan_dinas_luar' => $request->is_karyawan_dinas_luar,
-            'karyawan_dinas_luar' => $request->karyawan_dinas_luar,
-            'is_barang_inventaris_keluar' => $request->is_barang_inventaris_keluar,
-            'barang_inventaris_keluar' => $request->barang_inventaris_keluar,
-            'is_kendaraan_dinas_luar' => $request->is_kendaraan_dinas_luar,
-            'kendaraan_dinas_luar' => $request->kendaraan_dinas_luar,
+            'is_karyawan_dinas_keluar' => $request->is_karyawan_dinas_keluar,
+            'karyawan_dinas_keluar' => $request->karyawan_dinas_keluar,
+            'is_barang_keluar' => $request->is_barang_keluar,
+            'barang_keluar' => $request->barang_keluar,
+            'is_kendaraan_dinas_keluar' => $request->is_kendaraan_dinas_keluar,
+            'kendaraan_dinas_keluar' => $request->kendaraan_dinas_keluar,
             'is_lampu_mati' => $request->is_lampu_mati,
             'lampu_mati' => $request->lampu_mati,
             'status' => $status,
         ]);
 
-        // Simpan file upload (jika ada)
+        // Simpan file upload ke PUBLIC, bukan storage
         if ($request->hasFile('uploads')) {
-            foreach ($request->file('uploads') as $file) {
-                $originalName = $file->getClientOriginalName(); // nama asli
-                $path = $file->storeAs('jurnal_uploads', $originalName, 'public');
+            $dest = public_path('jurnal_uploads');
+            if (!File::exists($dest)) {
+                File::makeDirectory($dest, 0775, true);
+            }
 
-                Upload::create([
-                    'jurnal_id' => $jurnal->id,
-                    'file_path' => $path, // tetap simpan path-nya
-                ]);
+            foreach ($request->file('uploads') as $file) {
+                if ($file && $file->isValid()) {
+                    $originalName = $file->getClientOriginalName();
+                    $filenameWithoutExt = pathinfo($originalName, PATHINFO_FILENAME);
+                    $extension = $file->getClientOriginalExtension();
+                    
+                    $safeFilename = Str::slug($filenameWithoutExt);
+                    // Gunakan time() untuk memastikan keunikan
+                    $finalName = time() . '-' . $safeFilename . '.' . $extension;
+
+                    $file->move($dest, $finalName);
+
+                    Upload::create([
+                        'jurnal_id' => $jurnal->id,
+                        'file_path' => 'jurnal_uploads/' . $finalName,
+                        'created_by' => Auth::id(),
+                    ]);
+                }
             }
         }
         return response()->json(['success' => true]);
@@ -101,7 +240,7 @@ class JurnalSatpamController extends Controller
     {
         $jurnal = JurnalSatpam::with(['lokasi', 'shift', 'uploads'])->findOrFail($id);
         $lokasis = Lokasi::where('is_active', 1)->get();
-        $shifts = Shift::where('lokasi_id', $jurnal->lokasi_id)->get();
+        $shifts = Shift::where('is_active', 1)->get();
 
         return view('admin.fitur-1-edit', compact('jurnal', 'lokasis', 'shifts'));
     }
@@ -112,7 +251,7 @@ class JurnalSatpamController extends Controller
         
         // Hapus semua file terkait
         foreach ($jurnal->uploads as $upload) {
-            \Storage::disk('public')->delete($upload->file_path);
+            File::delete(public_path($upload->file_path));
             $upload->delete();
         }
 
@@ -133,11 +272,10 @@ class JurnalSatpamController extends Controller
             'info_tambahan' => 'required|string',
         ]);
 
-        // Validasi isian khusus jika 'Yes'
         $items = [
             'kejadian_temuan', 'lembur', 'proyek_vendor', 'paket_dokumen',
-            'tamu_belum_keluar', 'karyawan_dinas_luar', 'barang_inventaris_keluar',
-            'kendaraan_dinas_luar', 'lampu_mati'
+            'tamu_belum_keluar', 'karyawan_dinas_keluar', 'barang_keluar',
+            'kendaraan_dinas_keluar', 'lampu_mati'
         ];
 
         foreach ($items as $item) {
@@ -148,8 +286,11 @@ class JurnalSatpamController extends Controller
             }
         }
 
-        // Update jurnal
-        $jurnal->update([
+        $newStatus = Auth::user()->role === 'Kepala Satpam' ? 'approve' : 'waiting';
+
+        // --- CEK PERUBAHAN DATA ---
+        $hasChanges = false;
+        $updateData = [
             'lokasi_id' => $request->lokasi_id,
             'shift_id' => $request->shift_id,
             'tanggal' => $request->tanggal,
@@ -165,42 +306,91 @@ class JurnalSatpamController extends Controller
             'paket_dokumen' => $request->paket_dokumen,
             'is_tamu_belum_keluar' => $request->is_tamu_belum_keluar,
             'tamu_belum_keluar' => $request->tamu_belum_keluar,
-            'is_karyawan_dinas_luar' => $request->is_karyawan_dinas_luar,
-            'karyawan_dinas_luar' => $request->karyawan_dinas_luar,
-            'is_barang_inventaris_keluar' => $request->is_barang_inventaris_keluar,
-            'barang_inventaris_keluar' => $request->barang_inventaris_keluar,
-            'is_kendaraan_dinas_luar' => $request->is_kendaraan_dinas_luar,
-            'kendaraan_dinas_luar' => $request->kendaraan_dinas_luar,
+            'is_karyawan_dinas_keluar' => $request->is_karyawan_dinas_keluar,
+            'karyawan_dinas_keluar' => $request->karyawan_dinas_keluar,
+            'is_barang_keluar' => $request->is_barang_keluar,
+            'barang_keluar' => $request->barang_keluar,
+            'is_kendaraan_dinas_keluar' => $request->is_kendaraan_dinas_keluar,
+            'kendaraan_dinas_keluar' => $request->kendaraan_dinas_keluar,
             'is_lampu_mati' => $request->is_lampu_mati,
             'lampu_mati' => $request->lampu_mati,
-            'status' => "waiting",
-        ]);
+            'status' => $newStatus,
+        ];
 
-        // Hapus file lama jika ditandai
-        if ($request->has('delete_existing')) {
-            foreach ($request->delete_existing as $fileId) {
-                $upload = Upload::find($fileId);
-                if ($upload) {
-                    Storage::disk('public')->delete($upload->file_path);
+        foreach ($updateData as $field => $value) {
+            if ($jurnal->$field != $value) {
+                $hasChanges = true;
+                break;
+            }
+        }
+
+        // cek file dihapus
+        if ($request->filled('delete_existing')) {
+            $hasChanges = true;
+        }
+
+        // cek file baru diupload
+        if ($request->hasFile('uploads')) {
+            $hasChanges = true;
+        }
+
+        // --- JIKA TIDAK ADA PERUBAHAN ---
+        if (!$hasChanges) {
+            session()->flash('success', 'Tidak ada perubahan.');
+            return response()->json([
+                'success' => true,
+                'redirect_url' => route('log.history')
+            ]);
+        }
+
+        // --- UPDATE JURNAL ---
+        $updateData['updated_by'] = Auth::id();
+        $jurnal->update($updateData);
+
+        // --- HAPUS FILE LAMA ---
+        if ($request->filled('delete_existing')) {
+            foreach ((array)$request->delete_existing as $fileId) {
+                if ($upload = Upload::find($fileId)) {
+                    File::delete(public_path($upload->file_path));
+                    $upload->update(['updated_by' => Auth::id()]);
                     $upload->delete();
                 }
             }
         }
 
-        // Upload file baru jika ada
+        // --- UPLOAD FILE BARU ---
         if ($request->hasFile('uploads')) {
-            foreach ($request->file('uploads') as $file) {
-                $originalName = $file->getClientOriginalName();
-                $path = $file->storeAs('jurnal_uploads', $originalName, 'public');
+            $dest = public_path('jurnal_uploads');
+            if (!File::exists($dest)) {
+                File::makeDirectory($dest, 0775, true);
+            }
 
-                Upload::create([
-                    'jurnal_id' => $jurnal->id,
-                    'file_path' => $path,
-                ]);
+            foreach ($request->file('uploads') as $file) {
+                if ($file && $file->isValid()) {
+                    $originalName = $file->getClientOriginalName();
+                    $filenameWithoutExt = pathinfo($originalName, PATHINFO_FILENAME);
+                    $extension = $file->getClientOriginalExtension();
+
+                    $safeFilename = Str::slug($filenameWithoutExt);
+                    $finalName = time() . '-' . $safeFilename . '.' . $extension;
+
+                    $file->move($dest, $finalName);
+
+                    Upload::create([
+                        'jurnal_id' => $jurnal->id,
+                        'file_path' => 'jurnal_uploads/' . $finalName,
+                        'updated_by' => Auth::id(),
+                    ]);
+                }
             }
         }
 
-        return redirect()->route('log.history')->with('success', 'Jurnal berhasil diperbarui');
+        session()->flash('success', 'Jurnal berhasil diperbarui.');
+
+        return response()->json([
+            'success' => true,
+            'redirect_url' => route('log.history')
+        ]);
     }
 
 }

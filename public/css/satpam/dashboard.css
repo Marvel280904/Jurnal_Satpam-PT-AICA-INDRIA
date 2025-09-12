@@ -88,15 +88,14 @@ body, html {
 }
 
 .btn-jurnal{
-    display: inline-block;
+    display: inline-block; text-align: center;
     background: #3366FF;
     color: #fff;
-    padding: 9px 14px;
+    padding: 9px 14px;  
     border-radius: 10px;
     text-decoration: none;
     font-weight: 700;
     box-shadow: 0 4px 14px rgba(51,102,255,.25);
-    white-space: nowrap;
 }
 .btn-jurnal:hover{ filter: brightness(1.05); }
 
@@ -122,7 +121,7 @@ body, html {
         align-items: flex-start;
     }
     .btn-jurnal{
-        padding: 9px 12px;
+        padding: 9px 10px;
         border-radius: 8px;
     }
 }

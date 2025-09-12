@@ -16,10 +16,11 @@ class LogHistoryController extends Controller
 {
     public function index(Request $request)
     {
-        $lokasis = Lokasi::all();
-        $shifts  = Shift::all();
+        $lokasis = Lokasi::orderBy('is_active', 'desc')->orderBy('id')->get();
+        $shifts  = Shift::orderBy('is_active', 'desc')->orderBy('id')->get();
 
-        $query = JurnalSatpam::with(['lokasi','shift','satpam','uploads']);
+
+        $query = JurnalSatpam::with(['lokasi','shift','satpam','uploads','updatedBySatpam']);
 
         // Lokasi (id)
         if ($request->filled('lokasi_id')) {
@@ -82,14 +83,13 @@ class LogHistoryController extends Controller
         // Normalize date and shift name to match jadwals table
         $tanggal   = Carbon::parse($jurnal->tanggal)->toDateString();
         $lokasiId  = $jurnal->lokasi_id;
-        // In your app, jadwals.shift_nama stores strings like: "Shift Pagi", "Shift Siang", "Shift Malam"
-        $shiftNama = optional($jurnal->shift)->nama_shift; // e.g. "Shift Pagi"
+        $shiftId = $jurnal->shift_id;
 
         // Ambil semua satpam yang terjadwal pada tanggal + lokasi + shift yang sama
         $anggotaShift = Jadwal::with('satpam')
             ->whereDate('tanggal', $tanggal)
             ->when($lokasiId, fn($q) => $q->where('lokasi_id', $lokasiId))
-            ->when($shiftNama, fn($q) => $q->where('shift_nama', $shiftNama))
+            ->when($shiftId, fn($q) => $q->where('shift_id', $shiftId))
             ->get()
             ->pluck('satpam.nama') // assumes Jadwal->satpam relation returns User with 'nama'
             ->filter()             // buang null jika ada

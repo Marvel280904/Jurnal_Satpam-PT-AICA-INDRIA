@@ -28,160 +28,133 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         View::composer('*', function ($view) {
+            // =========================================================================
+            // PERAN: KEPALA SATPAM
+            // =========================================================================
             if (Auth::check() && Auth::user()->role === 'Kepala Satpam') {
+                // Perbaikan: Definisikan tanggal sebagai objek Carbon dan string secara terpisah
+                $todayCarbon    = Carbon::today();
+                $today          = $todayCarbon->toDateString(); // <-- Format 'YYYY-MM-DD' untuk query
+                $tomorrow       = $todayCarbon->copy()->addDay()->toDateString(); // <-- Format 'YYYY-MM-DD'
 
-                $today       = Carbon::today();
-                $tomorrow    = $today->copy()->addDay();
-                $now         = Carbon::now();
+                $reminders      = [];
+                $lokasiNameById = Lokasi::pluck('nama_lokasi', 'id');
+                $shiftNameById  = Shift::pluck('nama_shift', 'id');
 
-                $reminders = $reminders ?? [];
-
-                // 1) Journal Approval (waiting only)
-                $waitingCount = JurnalSatpam::whereDate('tanggal', '<=', $today)
-                                ->where('status', 'waiting')->count();
+                // 1) REMINDER: PERSETUJUAN JURNAL (STATUS WAITING)
+                $waitingCount = JurnalSatpam::where('status', 'waiting')->count();
                 if ($waitingCount > 0) {
                     $reminders[] = [
-                        'key'   => 'approval',
-                        'icon'  => 'bi-journal-check',
-                        'title' => 'Jurnal Approval',
-                        'desc'  => 'Jurnal Status - Waiting',
+                        'key'   => 'approval', 'icon'  => 'bi-journal-check',
+                        'title' => 'Jurnal Approval', 'desc'  => $waitingCount . ' Jurnal menunggu persetujuan',
                         'url'   => route('log.history'),
                     ];
                 }
 
-                // 2) Guard schedule reminders
+                // 2) REMINDER: JADWAL KOSONG
+                // Menggunakan variabel string $today dan $tomorrow untuk konsistensi
                 $hasToday    = Jadwal::whereDate('tanggal', $today)->exists();
                 $hasTomorrow = Jadwal::whereDate('tanggal', $tomorrow)->exists();
-
                 if (!$hasToday) {
                     $reminders[] = [
-                        'key'=>'jadwal-today', 'icon'=>'bi-calendar-plus',
-                        'title'=>'Guard Scheduling', 
-                        'desc'=>'Tambah jadwal hari ini !',
-                        'url'=>route('guard.data')
+                        'key'   => 'jadwal-today', 'icon' => 'bi-calendar-plus',
+                        'title' => 'Guard Scheduling', 'desc'  => 'Tambah jadwal untuk hari ini !',
+                        'url'   => route('guard.data')
                     ];
                 } elseif (!$hasTomorrow) {
                     $reminders[] = [
-                        'key'=>'jadwal-tomorrow', 'icon'=>'bi-plus-square',
-                        'title'=>'Guard Scheduling', 
-                        'desc'=>'Tambah jadwal untuk besok !',
-                        'url'=>route('guard.data')
+                        'key'   => 'jadwal-tomorrow', 'icon' => 'bi-plus-square',
+                        'title' => 'Guard Scheduling', 'desc'  => 'Tambah jadwal untuk besok !',
+                        'url'   => route('guard.data')
                     ];
                 }
 
-                // 3) Journal Late reminders
-                $lokasiNameById = Lokasi::pluck('nama_lokasi', 'id'); // [1=>'Kraton', 2=>'Rembang', ...]
-                $shiftMap = Shift::get()->mapWithKeys(function ($s) {
-                    return [ $s->lokasi_id.'|'.$s->nama_shift => $s->id ];
-                });
+                // 3) REMINDER: JURNAL TERLAMBAT DIISI
+                $expectedJournals = Jadwal::select('tanggal', 'lokasi_id', 'shift_id')
+                    ->whereNotNull('lokasi_id')->whereNotNull('shift_id')
+                    ->whereDate('tanggal', '<=', $today) // Menggunakan variabel string $today
+                    ->distinct()
+                    ->orderBy('tanggal', 'desc')
+                    ->get();
 
-                /** 
-                 * Ambil semua kombinasi unik (tanggal, lokasi_id, shift_nama) yang dijadwalkan
-                 * (boleh dari tanggal paling awal sampai hari ini).
-                 */
-                $expected = Jadwal::select('tanggal', 'lokasi_id', 'shift_nama')
-                    ->whereNotNull('lokasi_id')
-                    ->whereNotNull('shift_nama')
-                    ->whereDate('tanggal', '<=', Carbon::today()->toDateString())
-                    ->get()
-                    ->unique(fn ($r) => $r->tanggal.'|'.$r->lokasi_id.'|'.$r->shift_nama)
-                    ->values();
+                foreach ($expectedJournals as $expected) {
+                    $tanggalString = Carbon::parse($expected->tanggal)->toDateString();
 
-                /**
-                 * Set kombinasi yang SUDAH ada di jurnal: key = "tanggal|lokasi_id|shift_id"
-                 */
-                $existing = JurnalSatpam::select('tanggal', 'lokasi_id', 'shift_id')
-                    ->get()
-                    ->map(fn ($r) => $r->tanggal.'|'.$r->lokasi_id.'|'.$r->shift_id)
-                    ->flip(); // jadikan set
+                    $journalExists = JurnalSatpam::whereDate('tanggal', $tanggalString)
+                        ->where('lokasi_id', $expected->lokasi_id)
+                        ->where('shift_id', $expected->shift_id)
+                        ->exists();
 
-                foreach ($expected as $row) {
-                    $tanggal  = Carbon::parse($row->tanggal)->toDateString();  // pastikan format 'Y-m-d'
-                    $lokasiId = $row->lokasi_id;
-                    $shiftNm  = $row->shift_nama;
-
-                    // cari shift_id yang sesuai lokasi + nama shift
-                    $shiftId = $shiftMap[$lokasiId.'|'.$shiftNm] ?? null;
-                    if (!$shiftId) {
-                        // jika mapping tidak ketemu, lewati (hindari false-positive reminder)
-                        continue;
-                    }
-
-                    $key = $tanggal.'|'.$lokasiId.'|'.$shiftId;
-
-                    // jika kombinasi ini BELUM ada di jurnal, baru tampilkan reminder
-                    if (!$existing->has($key)) {
-                        $lokasiNama = $lokasiNameById[$lokasiId] ?? '-';
-                        $descDate   = Carbon::parse($tanggal)->translatedFormat('d F Y'); // 15 Agustus 2025
+                    if (!$journalExists) {
+                        $lokasiNama = $lokasiNameById[$expected->lokasi_id] ?? 'Lokasi tidak dikenal';
+                        $shiftNama  = $shiftNameById[$expected->shift_id] ?? 'Shift tidak dikenal';
+                        $descDate   = Carbon::parse($expected->tanggal)->translatedFormat('d F Y');
 
                         $reminders[] = [
-                            'key'   => 'late-'.$tanggal.'-'.$lokasiId.'-'.$shiftId,
+                            'key'   => 'late-' . $expected->tanggal . '-' . $expected->lokasi_id . '-' . $expected->shift_id,
                             'icon'  => 'bi-journal-plus',
                             'title' => 'Journal Entry',
-                            'desc'  => "Jurnal untuk Tanggal {$descDate} di {$lokasiNama} • {$shiftNm} belum disubmit",
+                            'desc'  => "Jurnal untuk {$descDate} di {$lokasiNama} • {$shiftNama} belum disubmit",
                             'url'   => route('jurnal.submission'),
                         ];
                     }
                 }
 
-                $reminderCount = count($reminders);
-
                 $view->with([
                     'reminders'     => $reminders,
-                    'reminderCount' => $reminderCount
+                    'reminderCount' => count($reminders)
                 ]);
-            }  // ====================== SATPAM REMINDERS ======================
-            elseif (Auth::check() && Auth::user()->role === 'Satpam') {
-                $user    = Auth::user();
-                $today   = Carbon::today();
-                $now     = Carbon::now();
-                $uid       = $user->id;
-                $reminders = [];
-                $lookbackDays = 30;
 
-                $jadwalsToCheck = Jadwal::where('user_id', $uid)
-                    ->whereDate('tanggal', '<=', $today) // semua tanggal <= hari ini
+            // =========================================================================
+            // PERAN: SATPAM (Logika serupa diterapkan di sini)
+            // =========================================================================
+            } elseif (Auth::check() && Auth::user()->role === 'Satpam') {
+                $user           = Auth::user();
+                // Perbaikan: Definisikan tanggal sebagai objek Carbon dan string secara terpisah
+                $todayCarbon    = Carbon::today();
+                $today          = $todayCarbon->toDateString(); // <-- Format 'YYYY-MM-DD' untuk query
+                $reminders      = [];
+
+                $lokasiNameById = Lokasi::pluck('nama_lokasi', 'id');
+                $shiftNameById  = Shift::pluck('nama_shift', 'id');
+
+                // 1) REMINDER: JURNAL YANG HARUS DIISI
+                $jadwalsToCheck = Jadwal::where('user_id', $user->id)
+                    ->whereNotNull('lokasi_id')->whereNotNull('shift_id')
+                    ->whereDate('tanggal', '<=', $today) // Menggunakan variabel string $today
                     ->orderByDesc('tanggal')
+                    ->limit(30)
                     ->get();
 
                 foreach ($jadwalsToCheck as $jdw) {
-                    // Konversi shift_nama di jadwals -> shift_id di jurnal
-                    $shiftId = Shift::where('nama_shift', $jdw->shift_nama)->value('id');
+                    $tanggalString = Carbon::parse($jdw->tanggal)->toDateString();
 
-                    // Sudah ada jurnal untuk kombinasi (user, tanggal, lokasi, shift)?
-                    $hasJournal = JurnalSatpam::where('user_id', $uid)
-                        ->whereDate('tanggal', $jdw->tanggal)
+                    $journalExists = JurnalSatpam::whereDate('tanggal', $tanggalString)
                         ->where('lokasi_id', $jdw->lokasi_id)
-                        ->where('shift_id', $shiftId)
+                        ->where('shift_id', $jdw->shift_id)
                         ->exists();
 
-                    if ($hasJournal) {
-                        continue; // sudah diisi, tidak perlu reminder
+                    if (!$journalExists) {
+                        $lokasiNama = $lokasiNameById[$jdw->lokasi_id] ?? '-';
+                        $shiftNama  = $shiftNameById[$jdw->shift_id] ?? '-';
+                        
+                        // Perbandingan isSameDay tetap menggunakan objek Carbon untuk akurasi
+                        $isToday    = Carbon::parse($jdw->tanggal)->isSameDay($todayCarbon);
+
+                        $desc = $isToday
+                            ? "Harap isi jurnal hari ini: {$lokasiNama} - {$shiftNama}."
+                            : "Jurnal tertinggal: " . Carbon::parse($jdw->tanggal)->format('d M Y') . " di {$lokasiNama} - {$shiftNama}.";
+
+                        $reminders[] = [
+                            'key'   => 'entry-' . $jdw->tanggal . '-' . $jdw->lokasi_id . '-' . $jdw->shift_id,
+                            'icon'  => 'bi-journal-plus', 'title' => 'Journal Entry',
+                            'desc'  => $desc, 'url'   => route('jurnal.submission'),
+                        ];
                     }
-
-                    // Info tampilan
-                    $lokasiNama = Lokasi::where('id', $jdw->lokasi_id)->value('nama_lokasi') ?? '-';
-                    $isToday    = Carbon::parse($jdw->tanggal)->isSameDay($today);
-
-                    // Pesan berbeda untuk "hari ini" vs tanggal lampau
-                    $desc = $isToday
-                        ? "Jangan lupa mengisi jurnal hari ini untuk {$lokasiNama} - {$jdw->shift_nama}!"
-                        : "Jangan lupa mengisi jurnal untuk tanggal " .
-                        Carbon::parse($jdw->tanggal)->format('d F Y') .
-                        " di {$lokasiNama} - {$jdw->shift_nama}!";
-
-                    // Key unik per (tanggal, lokasi, shift) agar tidak dobel
-                    $reminders[] = [
-                        'key'   => 'journal-entry-' . $jdw->tanggal . '-' . $jdw->lokasi_id . '-' . ($shiftId ?? '0'),
-                        'icon'  => 'bi-journal-plus',
-                        'title' => 'Journal Entry',
-                        'desc'  => $desc,
-                        'url'   => route('jurnal.submission'), // arahkan ke form pengisian
-                    ];
                 }
 
-                // 2) JOURNAL APPROVAL (REJECT) — tampilkan SEMUA jurnal user yang statusnya reject
-                $rejects = JurnalSatpam::where('user_id', $uid)
+                // 2) REMINDER: JURNAL DITOLAK
+                $rejects = JurnalSatpam::where('user_id', $user->id)
                     ->where('status', 'reject')
                     ->orderByDesc('tanggal')
                     ->get();
@@ -189,11 +162,9 @@ class AppServiceProvider extends ServiceProvider
                 foreach ($rejects as $rej) {
                     $dateStr = Carbon::parse($rej->tanggal)->format('d F Y');
                     $reminders[] = [
-                        'key'   => 'journal-reject-'.$rej->id,
-                        'icon'  => 'bi-journal-x',
-                        'title' => 'Journal Approval',
-                        'desc'  => "Jurnal untuk tanggal {$dateStr} telah di ditolak",
-                        'url'   => route('log.history'), // bisa diarahkan ke riwayat untuk melihat detail
+                        'key'   => 'reject-'.$rej->id, 'icon'  => 'bi-journal-x',
+                        'title' => 'Journal Ditolak', 'desc'  => "Jurnal untuk tanggal {$dateStr} perlu direvisi.",
+                        'url'   => route('log.history'),
                     ];
                 }
 

@@ -20,11 +20,17 @@
     flex-wrap: wrap;
 }
 .date-range label { font-weight: 600; margin-top: 6px; }
+.date-range label i{
+    position: absolute; font-size: 10px;
+    margin-left: 3px; font-weight: 600; color: red;
+}
 .date-range input {
+    margin-left: 10px;
     padding: 6px 8px; 
     border-radius: 6px; 
     border: 1px solid #ccc;
 }
+
 
 /* Two-column layout: left fixed, right flexible */
 .jadwal-flex {
@@ -83,6 +89,17 @@
     font-weight: 700; 
     display: block; 
     margin-bottom: 6px; 
+}
+.shift-block label .req{ 
+    font-size: 10px;
+    margin-left: 1px;
+    font-weight: 600;
+    color: red;
+
+    /* solusi */
+    display: inline-block;   /* supaya bisa diberi margin-top */
+    vertical-align: super;   /* naik ke atas */
+    margin-top: -2px;
 }
 .shift-block i { color: #888; }
 .assigned-list { min-height: 40px; }
@@ -198,6 +215,13 @@
     cursor: pointer;
 }
 .btn-submit:hover { background: #0056b3; }
+
+button[type="submit"]:disabled {
+  background-color: #cccccc; /* Warna abu-abu */
+  color: #000000;            /* Warna teks hitam */
+  cursor: not-allowed;      /* Mengubah ikon cursor saat di-hover */
+  border-color: #cccccc;      /* Menyamakan warna border */
+}
 
 /* Mobile */
 @media (max-width: 900px) {

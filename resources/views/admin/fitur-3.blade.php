@@ -69,6 +69,12 @@
     <div class="table-bg">
         <h1>Guard Data</h1>
 
+        @if(session('success'))
+            <div class="flash-message success" style="background: #d4edda; color: #155724; padding: 10px; margin-bottom: 10px; border-radius: 5px;">
+                {{ session('success') }}
+            </div>
+        @endif
+
         <form method="GET" class="filter-bar">
             <select class="filter-select" name="lokasi_id" onchange="this.form.submit()">
                 <option value="">Location</option>
@@ -79,10 +85,12 @@
                 @endforeach
             </select>
 
-            <select class="filter-select" name="shift" onchange="this.form.submit()">
+            <select class="filter-select" name="shift_id" onchange="this.form.submit()">
                 <option value="">Shift</option>
-                @foreach(['Pagi', 'Siang', 'Malam'] as $shift)
-                    <option value="{{ $shift }}" {{ request('shift') == $shift ? 'selected' : '' }}>{{ $shift }}</option>
+                @foreach($shifts as $shift)
+                    <option value="{{ $shift->id }}" {{ request('shift_id') == $shift->id ? 'selected' : '' }}>
+                        {{ $shift->nama_shift }}
+                    </option>
                 @endforeach
             </select>
 
@@ -104,15 +112,16 @@
                 <div id="jadwalModalBody">
                     @php
                         $lokasisAktif = $lokasis->where('is_active', 1);
+                        $shiftsAktif = $shifts->where('is_active', 1);
                     @endphp
 
                     <div class="jadwal-container">
                         <h2>Tambah Jadwal</h2>
 
                         <div class="date-range">
-                            <label>Start Date</label>
+                            <label>Start Date <i class="bi bi-asterisk"></i> </label>
                             <input type="date" name="start_date" id="jadwalStartDate" required>
-                            <label>End Date</label>
+                            <label>End Date <i class="bi bi-asterisk"></i> </label>
                             <input type="date" name="end_date" id="jadwalEndDate" required>
                         </div>
 
@@ -140,9 +149,9 @@
                                         <div class="lokasi-block">
                                             <h3><i class="bi bi-geo-fill"></i> {{ $lokasi->nama_lokasi }}</h3>
                                             <div class="shift-row">
-                                                @foreach(['Shift Pagi', 'Shift Siang', 'Shift Malam'] as $shift)
-                                                    <div class="shift-block" data-lokasi="{{ $lokasi->id }}" data-shift="{{ $shift }}">
-                                                        <label><i class="bi bi-calendar-check-fill"></i> {{ $shift }}</label>
+                                                @foreach($shiftsAktif as $shift)
+                                                    <div class="shift-block" data-lokasi="{{ $lokasi->id }}" data-shift="{{ $shift->id }}">
+                                                        <label><i class="bi bi-calendar-check-fill"></i> {{ $shift->nama_shift }} <i class="bi bi-asterisk req"></i> </label>
                                                         <div class="assigned-list"></div>
                                                     </div>
                                                 @endforeach
@@ -174,9 +183,9 @@
                             </select>
                             <label>Shift</label>
                             <select id="jadwalPopupShift">
-                                <option value="Shift Pagi">Shift Pagi</option>
-                                <option value="Shift Siang">Shift Siang</option>
-                                <option value="Shift Malam">Shift Malam</option>
+                                @foreach($shiftsAktif as $shift)
+                                    <option value="{{ $shift->id }}">{{ $shift->nama_shift }}</option>
+                                @endforeach
                             </select>
                             <div class="popup-buttons">
                                 <button type="button" id="jadwalPopupCancel">Cancel</button>
@@ -197,6 +206,8 @@
                             <th>Location</th>
                             <th>Shift</th>
                             <th>Status</th>
+                            <th>Created</th>
+                            <th>Updated</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -216,9 +227,9 @@
                                 <td>
                                     <select class="shift-select">
                                         <option value="">-- Pilih Shift --</option>
-                                        @foreach(['Shift Pagi', 'Shift Siang', 'Shift Malam'] as $shift)
-                                            <option value="{{ $shift }}" {{ $jadwal->shift_nama == $shift ? 'selected' : '' }}>
-                                                {{ $shift }}
+                                        @foreach($shifts as $shift)
+                                            <option value="{{ $shift->id }}" {{ $jadwal->shift_id == $shift->id ? 'selected' : '' }}>
+                                                {{ $shift->nama_shift }}
                                             </option>
                                         @endforeach
                                     </select>
@@ -228,6 +239,8 @@
                                         {{ $jadwal->status }}
                                     </span>
                                 </td>
+                                <td>{{ $jadwal->createdBySatpam->nama ?? '-' }}</td>
+                                <td class="updated-by-cell">{{ $jadwal->updatedBySatpam->nama ?? '-' }}</td>
                             </tr>
                         @empty
                             <tr><td colspan="6" class="kosong">Tidak ada data.</td></tr>
@@ -266,8 +279,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const lokasiSelect = row.querySelector('.lokasi-select');
         const shiftSelect = row.querySelector('.shift-select');
         const statusBadge = row.querySelector('.status-badge');
+        const updatedByCell = row.querySelector('.updated-by-cell');
 
-        const update = (lokasi_id, shift_nama, status) => {
+        const update = (lokasi_id, shift_id, status) => {
             fetch(`/guard-data/update/${id}`, {
                 method: 'POST',
                 headers: {
@@ -275,11 +289,15 @@ document.addEventListener('DOMContentLoaded', function () {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ lokasi_id, shift_nama, status })
+                body: JSON.stringify({ lokasi_id, shift_id, status })
             })
             .then(res => res.json())
             .then(data => {
-                if (!data.success) {
+                if (data.success) {
+                    if (updatedByCell && data.updated_by_name) {
+                        updatedByCell.textContent = data.updated_by_name;
+                    }
+                } else {
                     alert('Update gagal.');
                 }
             })
@@ -424,9 +442,9 @@ document.addEventListener('DOMContentLoaded', function () {
     popupAddBtn?.addEventListener('click', () => {
         if (!currentUserId) return;
         const lokasiId  = popupLokasi.value;
-        const shiftName = popupShift.value;
+        const shiftId = popupShift.value;
 
-        const target = document.querySelector(`.shift-block[data-lokasi="${lokasiId}"][data-shift="${shiftName}"] .assigned-list`);
+        const target = document.querySelector(`.shift-block[data-lokasi="${lokasiId}"][data-shift="${shiftId}"] .assigned-list`);
         if (target) {
         const row = document.createElement('div');
         row.className = 'assigned-item';
@@ -453,26 +471,32 @@ document.addEventListener('DOMContentLoaded', function () {
     form?.addEventListener('submit', function (e) {
         e.preventDefault();
 
+        const submitButton = document.querySelector('button[form="jadwalForm"]');
+        const originalBtnText = submitButton.innerHTML;
+
         if (!startDate.value || !endDate.value) {
-        alert('Tanggal mulai dan akhir wajib diisi.');
-        return;
+            alert('Tanggal mulai dan akhir wajib diisi.');
+            return;
         }
+
+        submitButton.disabled = true;
+        submitButton.innerHTML = 'Menyimpan...';
 
         // Build assign JSON
         const assignData = {};
         document.querySelectorAll('.shift-block').forEach(block => {
-        const lokasiId = block.dataset.lokasi;
-        const shift    = block.dataset.shift;
-        const userIds  = Array.from(block.querySelectorAll('.assigned-item')).map(i => i.dataset.user);
-        if (!assignData[lokasiId]) assignData[lokasiId] = {};
-        assignData[lokasiId][shift] = userIds;
+            const lokasiId = block.dataset.lokasi;
+            const shift    = block.dataset.shift;
+            const userIds  = Array.from(block.querySelectorAll('.assigned-item')).map(i => i.dataset.user);
+            if (!assignData[lokasiId]) assignData[lokasiId] = {};
+            assignData[lokasiId][shift] = userIds;
         });
 
         // Users not placed anywhere
         const unassigned = Array.from(document.querySelectorAll('#jadwalSatpamList .satpam-item')).map(i => i.dataset.user);
         if (unassigned.length) {
-        if (!assignData['null']) assignData['null'] = {};
-        assignData['null']['null'] = unassigned;
+            if (!assignData['null']) assignData['null'] = {};
+            assignData['null']['null'] = unassigned;
         }
 
         assignField.value = JSON.stringify(assignData);
@@ -505,11 +529,9 @@ document.addEventListener('DOMContentLoaded', function () {
         .then(r => r.json())
         .then(data => {
             if (data && data.success) {
-            alert('Jadwal berhasil ditambahkan');
-            modal.style.display = 'none';
-            window.location.href = ROUTE_AFTER;
+                window.location.href = ROUTE_AFTER;
             } else if (data) {
-            alert(data.message || 'Gagal menyimpan jadwal.');
+                alert(data.message || 'Gagal menyimpan jadwal.');
             }
         })
         .catch(err => {
@@ -517,6 +539,11 @@ document.addEventListener('DOMContentLoaded', function () {
             console.error(err);
             alert('Terjadi kesalahan saat menyimpan jadwal.');
             }
+        })
+        .finally(() => {
+            // 3. Kembalikan tombol ke keadaan semula setelah semua proses selesai
+            submitButton.disabled = false;
+            submitButton.innerHTML = originalBtnText;
         });
     });
 });

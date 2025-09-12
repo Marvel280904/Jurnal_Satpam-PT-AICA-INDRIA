@@ -90,6 +90,13 @@ button[type="submit"]:hover {
     background-color: #365ee6;
 }
 
+button[type="submit"]:disabled {
+  background-color: #cccccc; /* Warna abu-abu */
+  color: #000000;            /* Warna teks hitam */
+  cursor: not-allowed;      /* Mengubah ikon cursor saat di-hover */
+  border-color: #cccccc;      /* Menyamakan warna border */
+}
+
 .error {
     color: red;
     font-size: 0.85em;

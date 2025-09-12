@@ -126,6 +126,11 @@
     font-weight: 600;
 }
 
+.popup-content label i{
+    position: absolute; font-size: 10px;
+    margin-left: 3px; font-weight: 600; color: red;
+}
+
 .popup-content input {
     width: 94%;
     padding: 8px;
@@ -150,6 +155,13 @@
     border: none;
     border-radius: 6px;
     width: 100%;
+}
+
+button[type="submit"]:disabled {
+  background-color: #cccccc; /* Warna abu-abu */
+  color: #000000;            /* Warna teks hitam */
+  cursor: not-allowed;      /* Mengubah ikon cursor saat di-hover */
+  border-color: #cccccc;      /* Menyamakan warna border */
 }
 
 .close-btn {
@@ -181,4 +193,159 @@
 
 .close-btn:hover {
     color: red;
+}
+
+/* NOTIFIKASI */
+/* === Flash Toast (Top Center) === */
+.flash-toast{
+  position: fixed;
+  top: 30px;
+  left: 60%;
+  transform: translateX(-50%);
+  z-index: 99999;
+  min-width: 320px;
+  max-width: 90vw;
+  background: #ffffff;
+  color: #0f172a;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.15);
+  padding: 12px 44px 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid rgba(2,6,23,.08);
+  animation: flashSlideIn .25s ease-out;
+}
+
+/* indikator kiri kecil */
+.flash-toast .flash-dot{
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  display: inline-block;
+}
+
+/* tombol close */
+.flash-toast .flash-close{
+  position: absolute;
+  right: 10px;
+  top: 8px;
+  font-size: 20px;
+  line-height: 1;
+  border: 0;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+}
+
+/* variasi warna */
+.flash-toast.success { border-left: 6px solid #16a34a; }
+.flash-toast.success .flash-dot { background:#16a34a; }
+
+.flash-toast.warning { border-left: 6px solid #eab308; }
+.flash-toast.warning .flash-dot { background:#eab308; }
+
+.flash-toast.error { border-left: 6px solid #ef4444; }
+.flash-toast.error .flash-dot { background:#ef4444; }
+
+/* animasi masuk/keluar */
+@keyframes flashSlideIn{
+  from{ transform: translate(-50%, -8px); opacity:0; }
+  to  { transform: translate(-50%, 0);    opacity:1; }
+}
+.flash-toast.hide{
+  animation: flashFadeOut .25s ease-in forwards;
+}
+@keyframes flashFadeOut{
+  to{ transform: translate(-50%, -8px); opacity:0; }
+}
+
+
+/* Style untuk popup konfirmasi hapus */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* Latar belakang semi-transparan, tapi kontennya tidak terpengaruh */
+    background-color: rgba(0, 0, 0, 0.4); 
+    display: flex;
+    justify-content: center; /* Pusatkan secara horizontal */
+    align-items: flex-start;  /* Mulai dari atas */
+    z-index: 1000;
+    padding-top: 20px; /* Jarak dari atas layar */
+}
+
+/* Konten modal yang akan kita animasikan */
+.modal-overlay .modal-content {
+    /* Style dari .flash-message Anda */
+    background-color: #ffffff; /* Ubah agar lebih cocok untuk konfirmasi */
+    color: #333;
+    padding: 0px 20px 10px 20px;
+    border-radius: 8px;
+    font-weight: bold; font-size: large;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    text-align: center;
+    margin-left: 10%;
+    /* Awalnya disembunyikan */
+    opacity: 0; 
+}
+
+/* Kelas untuk memicu animasi masuk */
+.modal-overlay .modal-content.show {
+    animation: modalSlideDown 0.4s ease-out forwards;
+}
+
+/* Kelas untuk memicu animasi keluar */
+.modal-overlay .modal-content.hide {
+    animation: modalFadeOut 0.4s ease-in forwards;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.modal-actions button {
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.btn-cancel {
+    background-color: #e2e8f0;
+    color: #4a5568;
+}
+
+.btn-confirm-delete {
+    background-color: #ef4444; /* Merah */
+    color: white;
+}
+
+/* Keyframes yang Anda berikan, disesuaikan agar tetap di tengah */
+@keyframes modalSlideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes modalFadeOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
 }

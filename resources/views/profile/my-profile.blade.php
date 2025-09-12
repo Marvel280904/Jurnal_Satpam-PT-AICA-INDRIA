@@ -46,7 +46,7 @@
                 </div>
                 <div class="form-group">
                     <label>Password</label>
-                    <input type="password" name="password" placeholder="New Password">
+                    <input type="password" name="password" placeholder="New Password" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
                 </div>
                 <button type="submit" class="save-btn">Save</button>
             </form>

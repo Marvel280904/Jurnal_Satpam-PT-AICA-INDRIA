@@ -8,7 +8,7 @@ class Shift extends Model
 {
     //protected $primaryKey = 'shift_id';
 
-    protected $fillable = ['lokasi_id', 'nama_shift', 'mulai_shift', 'selesai_shift'];
+    protected $fillable = ['lokasi_id', 'nama_shift', 'mulai_shift', 'selesai_shift', 'is_active'];
 
     public function jurnalSatpams()
     {
@@ -19,5 +19,6 @@ class Shift extends Model
     {
         return $this->belongsTo(Lokasi::class, 'lokasi_id');
     }
+
 }
 

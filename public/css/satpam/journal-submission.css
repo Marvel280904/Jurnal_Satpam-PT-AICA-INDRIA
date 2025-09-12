@@ -26,6 +26,19 @@
     margin-bottom: 8px;
 }
 
+.form-group label i,
+.form-group-row label i{
+    font-size: 10px;
+    margin-left: 1px;
+    font-weight: 600;
+    color: red;
+
+    /* solusi */
+    display: inline-block;   /* supaya bisa diberi margin-top */
+    vertical-align: super;   /* naik ke atas */
+    margin-top: -2px;
+}
+
 .form-group input[type="text"],
 .form-group textarea,
 .form-group-row select,
@@ -83,6 +96,13 @@
 
 .btn-submit:hover {
     background-color: #3569d2;
+}
+
+button[type="submit"]:disabled {
+  background-color: #cccccc; /* Warna abu-abu */
+  color: #000000;            /* Warna teks hitam */
+  cursor: not-allowed;      /* Mengubah ikon cursor saat di-hover */
+  border-color: #cccccc;      /* Menyamakan warna border */
 }
 
 .flash-message.success {
@@ -152,4 +172,75 @@
     line-height: 20px;
     text-align: center;
     padding: 0;
+}
+
+/* CSS untuk Persistent Notification Popup */
+.modal-overlay.is-visible {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 1999; /* Di bawah toast */
+}
+
+/* Style utama untuk toast notifikasi */
+.flash-toast {
+    position: fixed;
+    top: 20px;
+    left: 60%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: white;
+    padding: 14px 40px 14px 20px; 
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 1rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    z-index: 2000; /* Di atas overlay */
+    
+    /* Animasi saat muncul (TIDAK ADA animasi untuk hilang otomatis) */
+    animation: slideDown 0.5s ease-out forwards;
+}
+
+/* Warna untuk tipe notifikasi 'warning' */
+.flash-toast.warning {
+    background-color: #f59e0b; /* Oranye/Kuning */
+}
+.flash-toast.warning .flash-dot {
+    background-color: #fef3c7; /* Kuning pucat */
+}
+
+/* Elemen di dalam toast */
+.flash-text {
+    flex-grow: 1;
+}
+
+.flash-close {
+    background: none;
+    border: none;
+    color: Black;
+    font-size: 28px;
+    line-height: 1;
+    cursor: pointer;
+    font-weight: bolder;
+}
+.flash-close:hover {
+    color: red;
+}
+
+
+/* Keyframe untuk animasi turun */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -50px);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
 }

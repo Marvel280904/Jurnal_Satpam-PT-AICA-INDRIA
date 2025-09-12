@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Upload extends Model
 {
-    protected $fillable = ['jurnal_id', 'file_path'];
+    protected $fillable = ['jurnal_id', 'file_path', 'created_by', 'updated_by'];
 
     public function jurnal()
     {

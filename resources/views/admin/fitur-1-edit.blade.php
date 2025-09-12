@@ -21,9 +21,9 @@
 
         <div class="form-group-row">
             <div>
-                <label>Lokasi</label>
+                <label>Lokasi <i class="bi bi-asterisk"></i> </label>
                 <select name="lokasi_id" id="lokasiSelect" required>
-                    <option value="">-- Pilih Lokasi --</option>
+                    <option value="" disabled selected>-- Pilih Lokasi --</option>
                     @foreach($lokasis as $lokasi)
                         <option value="{{ $lokasi->id }}" {{ $jurnal->lokasi_id == $lokasi->id ? 'selected' : '' }}>
                             {{ $lokasi->nama_lokasi }}
@@ -33,28 +33,26 @@
             </div>
 
             <div>
-                <label>Shift</label>
+                <label>Shift <i class="bi bi-asterisk"></i> </label>
                 <select name="shift_id" id="shiftSelect" required>
-                    <option value="">-- Pilih Shift --</option>
+                    <option value="" disabled selected>-- Pilih Shift --</option>
                     @foreach($shifts as $shift)
-                        @if($shift->lokasi_id == $jurnal->lokasi_id)
-                            <option value="{{ $shift->id }}" {{ $jurnal->shift_id == $shift->id ? 'selected' : '' }}>
-                                {{ $shift->nama_shift }}
-                            </option>
-                        @endif
+                        <option value="{{ $shift->id }}" {{ $jurnal->shift_id == $shift->id ? 'selected' : '' }}>
+                            {{ $shift->nama_shift }}
+                        </option>
                     @endforeach
                 </select>
             </div>
 
             <div>
-                <label>Tanggal</label>
+                <label>Tanggal <i class="bi bi-asterisk"></i> </label>
                 <input type="date" name="tanggal" value="{{ \Carbon\Carbon::parse($jurnal->tanggal)->format('Y-m-d') }}" required>
             </div>
 
         </div>
 
         <div class="form-group">
-            <label>Cuaca</label>
+            <label>Cuaca <i class="bi bi-asterisk"></i> </label>
             <input type="text" name="cuaca" value="{{ $jurnal->cuaca }}" required>
         </div>
 
@@ -65,16 +63,16 @@
                 'proyek_vendor' => 'Proyek/Vendor',
                 'paket_dokumen' => 'Paket/Dokumen',
                 'tamu_belum_keluar' => 'Tamu Belum Keluar',
-                'karyawan_dinas_luar' => 'Karyawan Dinas Luar',
-                'barang_inventaris_keluar' => 'Barang Inventaris Keluar',
-                'kendaraan_dinas_luar' => 'Kendaraan Dinas Luar',
+                'karyawan_dinas_keluar' => 'Karyawan Dinas Luar',
+                'barang_keluar' => 'Barang Inventaris Keluar',
+                'kendaraan_dinas_keluar' => 'Kendaraan Dinas Luar',
                 'lampu_mati' => 'Lampu/Penerangan Mati'
             ];
         @endphp
 
         @foreach($items as $key => $label)
             <div class="form-group">
-                <label>{{ $label }}</label>
+                <label>{{ $label }} <i class="bi bi-asterisk"></i> </label>
                 <div class="radio-group">
                     <label><input type="radio" name="is_{{ $key }}" value="1" {{ $jurnal->{"is_{$key}"} ? 'checked' : '' }}> Yes</label>
                     <label><input type="radio" name="is_{{ $key }}" value="0" {{ !$jurnal->{"is_{$key}"} ? 'checked' : '' }}> No</label>
@@ -84,12 +82,12 @@
         @endforeach
 
         <div class="form-group">
-            <label>Informasi Tambahan</label>
+            <label>Informasi Tambahan <i class="bi bi-asterisk"></i> </label>
             <textarea name="info_tambahan" required>{{ $jurnal->info_tambahan }}</textarea>
         </div>
 
         <div class="form-group">
-            <label>Upload Foto/File Baru (boleh lebih dari 1)</label>
+            <label>Upload Foto/File Baru (Max: 2 MB)</label>
             <input type="file" id="fileInput" multiple>
 
             <ul id="fileList" class="file-preview-list">
@@ -112,107 +110,145 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
+    // ==========================================================
+    // A. SETUP AWAL
+    // ==========================================================
+    const form = document.getElementById('jurnalForm');
     const fileInput = document.getElementById('fileInput');
     const fileList = document.getElementById('fileList');
-    const form = document.getElementById('jurnalForm');
-    const lokasiSelect = document.getElementById('lokasiSelect');
-    const shiftSelect = document.getElementById('shiftSelect');
+    const lokasiSelect = document.getElementById('lokasiSelect'); // Variabel ditambahkan
+    const shiftSelect = document.getElementById('shiftSelect');   // Variabel ditambahkan
 
-    let newFiles = [];         // Untuk file baru
-    let filesToDelete = [];    // Untuk file yang ingin dihapus
+    let newFiles = [];        // Menyimpan file BARU yang akan diupload
+    let filesToDelete = [];   // Menyimpan ID file LAMA yang akan dihapus
 
-    // A. Hapus file lama dari tampilan dan simpan ID-nya
+    // ==========================================================
+    // B. MANAJEMEN FILE (TAMBAH & HAPUS)
+    // ==========================================================
+    // Event listener untuk tombol hapus (baik file lama maupun baru)
     fileList.addEventListener('click', function (e) {
-        if (e.target.classList.contains('remove-existing')) {
-            const li = e.target.closest('li');
+        if (!e.target.classList.contains('remove-btn')) return;
+        const li = e.target.closest('li');
+        if (li.classList.contains('existing-file')) {
             const fileId = e.target.dataset.id;
-            filesToDelete.push(fileId);
+            if (!filesToDelete.includes(fileId)) {
+                filesToDelete.push(fileId);
+            }
+            li.style.display = 'none';
+        }
+        else if (li.dataset.newFileIndex !== undefined) {
+            const index = parseInt(li.dataset.newFileIndex, 10);
+            newFiles.splice(index, 1);
             li.remove();
         }
     });
 
-    // B. Tambah file baru
+    // Event listener saat user memilih file baru
     fileInput.addEventListener('change', function () {
-        const files = Array.from(this.files);
-        newFiles = newFiles.concat(files);
-        renderFileList();
-        this.value = ''; // reset input
+        Array.from(this.files).forEach(f => newFiles.push(f));
+        renderNewFiles();
+        this.value = '';
     });
 
-    function renderFileList() {
-        // Ambil ulang file lama yang belum dihapus
-        const existingLis = document.querySelectorAll('.existing-file');
-        fileList.innerHTML = '';
-        existingLis.forEach(el => fileList.appendChild(el));
-
+    // Fungsi untuk menampilkan HANYA file baru yang ditambahkan
+    function renderNewFiles() {
+        document.querySelectorAll('li[data-new-file-index]').forEach(el => el.remove());
         newFiles.forEach((file, index) => {
             const li = document.createElement('li');
+            li.dataset.newFileIndex = index;
             li.innerHTML = `
-                <span>${file.name}</span>
-                <button type="button" class="remove-btn" onclick="removeNewFile(${index})">x</button>
+                <span>${file.name} <span class="badge-new"></span></span>
+                <button type="button" class="remove-btn">x</button>
             `;
             fileList.appendChild(li);
         });
     }
 
-    // Hapus file baru dari daftar
-    window.removeNewFile = function (index) {
-        newFiles.splice(index, 1);
-        renderFileList();
-    };
+    // ==========================================================
+    // C. LOGIKA VALIDASI RADIO BUTTON & TEXTAREA
+    // ==========================================================
+    @if(isset($items))
+        @foreach($items as $key => $label)
+            (function(){
+            const yes = document.querySelector('input[name="is_{{ $key }}"][value="1"]');
+            const no  = document.querySelector('input[name="is_{{ $key }}"][value="0"]');
+            const ta  = document.querySelector('textarea[name="{{ $key }}"]');
+            function sync_{{ $key }}() {
+                if (!yes || !ta) return;
+                if (yes.checked) {
+                    ta.required = true;
+                    if (ta.value.trim() === '') {
+                        ta.setCustomValidity('Keterangan wajib diisi jika memilih Yes.');
+                    } else {
+                        ta.setCustomValidity('');
+                    }
+                } else {
+                    ta.required = false;
+                    ta.setCustomValidity('');
+                }
+            }
+            sync_{{ $key }}();
+            if (yes) yes.addEventListener('change', sync_{{ $key }});
+            if (no) no.addEventListener('change',  sync_{{ $key }});
+            if (ta) ta.addEventListener('input', sync_{{ $key }});
+            })();
+        @endforeach
+    @endif
 
-    // C. Auto-load shift saat lokasi diganti
-    lokasiSelect.addEventListener('change', function () {
-        const lokasiId = this.value;
-        shiftSelect.innerHTML = '<option value="">-- Pilih Shift --</option>';
-        shiftSelect.disabled = true;
 
-        if (lokasiId) {
-            fetch(`/shifts/by-location/${lokasiId}`)
-                .then(response => response.json())
-                .then(data => {
-                    data.forEach(shift => {
-                        const option = document.createElement('option');
-                        option.value = shift.id;
-                        option.textContent = shift.nama_shift;
-                        shiftSelect.appendChild(option);
-                    });
-                    shiftSelect.disabled = false;
-                })
-                .catch(error => {
-                    console.error('Gagal mengambil data shift:', error);
-                });
-        }
-    });
-
-    // D. Saat submit → tambahkan input untuk file & file yang dihapus, lalu submit form biasa
+    // ==========================================================
+    // D. PROSES SUBMIT FORM DENGAN FETCH (AJAX)
+    // ==========================================================
     form.addEventListener('submit', function (e) {
-        // Buat input file hidden untuk file baru
-        const uploadContainer = document.createElement('div');
-        uploadContainer.style.display = 'none';
+        e.preventDefault();
 
-        const uploadsInput = document.createElement('input');
-        uploadsInput.type = 'file';
-        uploadsInput.name = 'uploads[]';
-        uploadsInput.multiple = true;
+        const submitButton = form.querySelector('button[type="submit"]');
+        const originalBtnText = submitButton.innerHTML;
 
-        const dataTransfer = new DataTransfer();
-        newFiles.forEach(file => dataTransfer.items.add(file));
-        uploadsInput.files = dataTransfer.files;
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
 
-        uploadContainer.appendChild(uploadsInput);
-        form.appendChild(uploadContainer);
+        submitButton.disabled = true;
+        submitButton.innerHTML = 'Menyimpan...';
 
-        // Tambahkan hidden input untuk setiap file yang ingin dihapus
-        filesToDelete.forEach(id => {
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'delete_existing[]';
-            input.value = id;
-            form.appendChild(input);
+        const formData = new FormData(form);
+        newFiles.forEach(file => {
+            formData.append('uploads[]', file, file.name);
         });
+        filesToDelete.forEach(id => {
+            formData.append('delete_existing[]', id);
+        });
+        formData.append('_method', 'PUT');
 
-        // Lanjutkan submit form normal (biarkan Laravel handle PUT)
+        fetch(form.action, {
+            method: "POST",
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Accept': 'application/json',
+            },
+            body: formData
+        })
+        .then(async (res) => {
+            if (!res.ok) {
+                const text = await res.text();
+                console.error('Server Error:', text);
+                throw new Error('Terjadi kesalahan pada server.');
+            }
+            return res.json();
+        })
+        .then(data => {
+            if (data.success) {
+                window.location.href = data.redirect_url;
+            } else {
+                alert("Gagal memperbarui jurnal.");
+            }
+        })
+        .catch(err => {
+            alert(err.message);
+            console.error(err);
+        });
     });
 });
 </script>

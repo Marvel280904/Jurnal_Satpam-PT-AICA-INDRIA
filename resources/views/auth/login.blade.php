@@ -13,7 +13,7 @@
         <img src="{{ asset('images/bg_login.jpg') }}" alt="Background" class="bg-img">
         <div class="login-box">
             <h2>Login</h2>
-            <form method="POST" action="{{ route('login') }}">
+            <form id="loginForm" method="POST" action="{{ route('login') }}">
                 @csrf
 
                 <div class="input-group-custom">
@@ -23,10 +23,10 @@
 
                 <div class="input-group-custom">
                     <i class="bi bi-lock-fill icon-left"></i>
-                    <input type="password" name="password" id="password" placeholder="Password" required>
+                    <input type="password" name="password" id="password" placeholder="Password" required autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
                 </div>
 
-                <button type="submit">Submit</button>
+                <button type="submit">Log In</button>
 
                 @error('username')
                     <span class="error">{{ $message }}</span>
@@ -34,5 +34,22 @@
             </form>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const loginForm = document.getElementById('loginForm');
+
+            if (loginForm) {
+                loginForm.addEventListener('submit', () => {
+                    const submitButton = loginForm.querySelector('button[type="submit"]');
+                    
+                    if (submitButton) {
+                        submitButton.disabled = true;
+                        submitButton.innerHTML = 'Loading...';
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html>

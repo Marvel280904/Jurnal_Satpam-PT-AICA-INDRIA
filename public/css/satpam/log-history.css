@@ -1,15 +1,21 @@
 .log-history-container { padding: 20px; background-color: #E6E9F4; flex:1; } 
-.log-history-container h1{ margin-top: 0px; font-size: xx-large; } /* FILTER BAR */ 
+.log-history-container h1{ margin-top: 0px; font-size: xx-large; } 
 
+/* FILTER BAR */ 
 .filter-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 20px; } 
 .filter-bar select, .filter-bar input[type="date"] { 
     padding: 6px 10px; 
     border-radius: 5px; 
     border: 1px solid #ccc; 
     cursor: pointer; 
-} 
+}
+.filter-input option.inactive-option {
+    color: #999;   /* abu-abu */
+    font-style: italic;
+}
+#filterLokasi{ padding-right: 5px; } #filterShift{ padding-right: 5px; } 
 
-#filterLokasi{ padding-right: 5px; } #filterShift{ padding-right: 35px; } /* SEARCH WRAPPER */ 
+/* SEARCH WRAPPER */ 
 .search-wrapper { position: relative; flex-grow: 1; max-width: 200px; } 
 .search-wrapper .search-icon { 
     position: absolute; 
@@ -27,20 +33,84 @@
 } 
 
 /* TABLE STYLING */ 
-.table-bg{ background: white; padding: 20px; border-radius: 20px; } 
-.table-container { background: white; border-radius: 8px; overflow-x: auto; } 
-table { width: 100%; border-collapse: collapse; } 
-th, td { padding: 12px 16px; border-bottom: 1px solid #eee; text-align: left; } 
-th { background-color: #f0f2f8; font-weight: bold; } 
-.table-container tbody tr:nth-child(odd) { background-color: #ffffff; /* putih */ } 
-.table-container tbody tr:nth-child(even) { background-color: #f2f2f2; /* abu-abu terang */ } 
+.table-bg { 
+    background: white; 
+    padding: 20px; 
+    border-radius: 20px; 
+} 
 
-/* Flex untuk isi kolom Action */ 
-td .action-content { display: flex; align-items: center; /* Jarak antara badge dan icon */ } 
+.table-container { 
+    background: white; 
+    border-radius: 8px; 
+    overflow-x: scroll;
+} 
 
-/* Ikon */ 
-/* Dorong kelompok ikon ke kanan: cukup ikon PERTAMA saja */
-td .action-content .view-detail-btn { margin-left:auto; }
+table { 
+    width: 100%; 
+    border-collapse: collapse;
+    /* [BARU] Membuat layout tabel lebih kaku dan mematuhi lebar yang kita tentukan */
+    
+} 
+
+th, td { 
+    padding: 12px 16px; 
+    border-bottom: 1px solid #eee; 
+    text-align: left;
+    text-overflow: ellipsis;
+} 
+
+/* [BARU] Atur lebar spesifik untuk setiap kolom */
+.col-date    { width: 0%; }
+.col-location{ width: 5%; }
+.col-shift   { width: 11%; }
+.col-name    { width: 15%; }
+.col-role    { width: 14%; }
+.col-updated { width: 15%; }
+.col-status  { width: 30%; min-width: 200px; } /* Beri ruang lebih untuk kolom status/action */
+
+th { 
+    background-color: #f0f2f8; 
+    font-weight: bold; 
+} 
+
+.table-container tbody tr:nth-child(odd) { background-color: #ffffff; } 
+.table-container tbody tr:nth-child(even) { background-color: #f2f2f2; } 
+
+/* [PERBAIKAN] Flex untuk merapikan isi kolom Status */ 
+td .action-content { 
+    display: flex; 
+    align-items: center; 
+    /* [BARU] Mendorong badge ke kiri dan ikon ke kanan */
+    justify-content: space-between; 
+    gap: 7px;
+} 
+
+/* [BARU] Wrapper untuk semua ikon agar menjadi satu grup */
+.action-icons {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Jarak antar ikon */
+}
+
+/* Samakan gaya semua “tombol ikon” dan form */
+td .action-content a,
+td .action-content .download-btn,
+td .action-content .edit-btn,
+td .action-content .view-detail-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px; /* Sedikit diperkecil agar muat */
+    height: 30px;
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+    text-decoration: none;
+    flex-shrink: 0; /* Mencegah ikon menyusut */
+}
+
+td .action-content .view-detail-btn i{
+    margin-left: 0px;
+}
 
 /* Reset style tombol <form> (trash) agar sama seperti <a> */
 td .action-content form { display:inline; }
@@ -50,23 +120,9 @@ td .action-content form button{
   display:inline-flex;
   align-items:center;
   justify-content:center;
-  width:36px; height:36px;
+  width:30px; height:30px;
   border-radius:10px;
   transition:transform .15s ease, box-shadow .15s ease, background .15s ease;
-}
-
-/* Samakan gaya semua “tombol ikon” */
-td .action-content a,
-td .action-content .download-btn,
-td .action-content .edit-btn,
-td .action-content .view-detail-btn{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  width:36px; height:36px;
-  border-radius:10px;
-  transition:transform .15s ease, box-shadow .15s ease, background .15s ease;
-  text-decoration:none;
 }
 
 /* Ukuran ikon */
@@ -228,7 +284,96 @@ td .action-content .download-btn i   { color:#eab308; }   /* amber */
 
 @keyframes fadeOut { 
     to { opacity: 0; transform: translate(-20%, -40px); } 
-} 
+}
+
+/* Style untuk popup konfirmasi hapus */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* Latar belakang semi-transparan, tapi kontennya tidak terpengaruh */
+    background-color: rgba(0, 0, 0, 0.4); 
+    display: flex;
+    justify-content: center; /* Pusatkan secara horizontal */
+    align-items: flex-start;  /* Mulai dari atas */
+    z-index: 1000;
+    padding-top: 20px; /* Jarak dari atas layar */
+}
+
+/* Konten modal yang akan kita animasikan */
+.modal-overlay .modal-content {
+    /* Style dari .flash-message Anda */
+    background-color: #ffffff; /* Ubah agar lebih cocok untuk konfirmasi */
+    color: #333;
+    padding: 0px 20px 10px 20px;
+    border-radius: 8px;
+    font-weight: bold; font-size: large;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    text-align: center;
+    margin-left: 10%;
+    /* Awalnya disembunyikan */
+    opacity: 0; 
+}
+
+/* Kelas untuk memicu animasi masuk */
+.modal-overlay .modal-content.show {
+    animation: modalSlideDown 0.4s ease-out forwards;
+}
+
+/* Kelas untuk memicu animasi keluar */
+.modal-overlay .modal-content.hide {
+    animation: modalFadeOut 0.4s ease-in forwards;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.modal-actions button {
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.btn-cancel {
+    background-color: #e2e8f0;
+    color: #4a5568;
+}
+
+.btn-confirm-delete {
+    background-color: #ef4444; /* Merah */
+    color: white;
+}
+
+/* Keyframes yang Anda berikan, disesuaikan agar tetap di tengah */
+@keyframes modalSlideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes modalFadeOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+}
 
 @media (max-width: 926px) { .search-wrapper { max-width: 328px; } } 
 @media (max-width: 750px) { .search-wrapper { max-width: 200px; } } 

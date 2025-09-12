@@ -16,7 +16,6 @@ use App\Http\Controllers\JurnalSatpamController;
 use App\Http\Controllers\LogHistoryController;
 use App\Http\Controllers\KepalaSatpamController;
 use App\Http\Controllers\GuardController;
-use App\Http\Controllers\JadwalController;
 
 
 
@@ -57,9 +56,12 @@ Route::middleware('auth', 'prevent-back-history')->group(function () {
     //route fitur lokasi & shift
     Route::get('/location-shift', [LocationShiftController::class, 'index'])->name('location.shift.index');
     Route::post('/location', [LocationShiftController::class, 'storeLocation'])->name('location.store');
+    Route::put('/location/{id}', [LocationShiftController::class, 'updateLocation'])->name('location.update');
+    Route::post('/location/{id}/toggle-status', [LocationShiftController::class, 'toggleStatusLoc'])->name('location.toggleStatus');
     Route::post('/shift', [LocationShiftController::class, 'storeShift'])->name('shift.store');
     Route::put('/shift/{id}', [LocationShiftController::class, 'updateShift'])->name('shift.update');
-    Route::post('/location/{id}/toggle-status', [LocationShiftController::class, 'toggleStatus'])->name('location.toggleStatus');
+    Route::post('/shift/{id}/toggle-status', [LocationShiftController::class, 'toggleStatusShift'])->name('shift.toggleStatus');
+
 
     // route fitur user & role
     Route::get('/user-role', [UserController::class, 'index'])->name('user.index');
