@@ -39,6 +39,7 @@
 #filterLokasi {
     padding-right: 5px;
 }
+
 #filterShift {
     padding-right: 5px;
 }
@@ -145,22 +146,41 @@ td .action-content .view-detail-btn i {
     margin-left: 0px;
 }
 
+td .action-content form {
+    display: inline;
+}
+
+td .action-content form button {
+    all: unset;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 10px;
+    transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+}
+
 td .action-content i {
     font-size: 18px;
     line-height: 1;
 }
 
-td .action-content a:hover {
+td .action-content a:hover,
+td .action-content form button:hover {
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(0,0,0,.08);
 }
 
 td .action-content .view-detail-btn:hover { background: #e9e9e9; }
 td .action-content .edit-btn:hover { background: #d6dffd; }
+td .action-content form button:hover { background: #f0c8ca; }
 td .action-content .download-btn:hover { background: #f0c8ca; }
 
 td .action-content .view-detail-btn i { color: #334155; }
 td .action-content .edit-btn i { color: #2563eb; }
+td .action-content form button i { color: #ef4444; }
 td .action-content .download-btn i { color: #eab308; }
 
 .view-icon {
@@ -367,7 +387,7 @@ td .action-content .download-btn i { color: #eab308; }
 /* ===========================
    5. NOTIFICATION & ANIMATIONS
    =========================== */
-.flash-message {
+.flash-message { 
     position: fixed;
     top: 20px;
     left: 50%;

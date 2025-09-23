@@ -39,7 +39,7 @@ class SatpamDashboardController extends Controller
             ->take(5)
             ->get();
 
-        return view('admin.dashboard', compact(
+        return view('Satpam.dashboard', compact(
             'shift', 'lokasi', 'today', 'latestJournal', 'jurnalHistory'
         ));
     }

@@ -1,3 +1,6 @@
+/* ===========================
+   1. MAIN CONTAINER & HEADER
+   =========================== */
 .profile-container {
     padding: 30px 60px;
     border-radius: 20px;
@@ -25,6 +28,9 @@
     font-weight: bold;
 }
 
+/* ===========================
+   2. PROFILE CONTENT LAYOUT
+   =========================== */
 .profile-content {
     display: flex;
     background-color: white;
@@ -32,6 +38,7 @@
     border-radius: 0 0 20px 20px;
 }
 
+/* --- Left Side (Photo) --- */
 .profile-left {
     display: flex;
     flex-direction: column;
@@ -62,6 +69,7 @@
     background-color: #bbb;
 }
 
+/* --- Right Side (Form) --- */
 .profile-right {
     flex: 1;
     padding-top: 20px;
@@ -97,6 +105,11 @@
     color: #555;
 }
 
+.form-group .pass{
+    background-color: white;
+    color: black;
+}
+
 .save-btn {
     align-self: flex-end;
     background-color: #ddd;
@@ -113,7 +126,9 @@
     background-color: #bbb;
 }
 
-/* notif berhasil safe */
+/* ===========================
+   3. NOTIFICATION MESSAGE
+   =========================== */
 .flash-message {
     position: fixed;
     top: 30px;
@@ -144,5 +159,53 @@
     to {
         opacity: 0;
         transform: translateX(-10%) translateY(-20px);
+    }
+}
+
+/* ===========================
+   4. RESPONSIVE MEDIA QUERIES
+   =========================== */
+@media (max-width: 1029px) {
+    .profile-content {
+        flex-direction: column;
+        padding: 20px;
+    }
+    .profile-left {
+        margin-right: 0;
+        margin-bottom: 30px;
+        align-items: center;
+    }
+    .profile-right {
+        padding-top: 0;
+    }
+    .profile-right form {
+        gap: 15px;
+    }
+    .form-group {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .form-group label {
+        width: 100%;
+        margin-bottom: 6px;
+        font-weight: 600;
+    }
+    .form-group input {
+        width: 93%;
+        background-color: #fff; /* buat input tampak jelas */
+    }
+    .save-btn {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+@media (max-width: 538px) {
+    .form-group input {
+        width: 92%;
+        background-color: #fff; /* buat input tampak jelas */
+    }
+    .profile-container {
+        padding: 30px 20px 30px 30px;
     }
 }

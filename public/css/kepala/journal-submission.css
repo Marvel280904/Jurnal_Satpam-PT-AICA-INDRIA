@@ -168,6 +168,22 @@ button[type="submit"]:disabled {
     box-sizing: border-box;
 }
 
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeOut {
+    to {
+        transform: translateY(0);
+        opacity: 0;
+        visibility: hidden;
+        height: 0;
+        margin: 0;
+        padding: 0;
+    }
+}
+
 /* --- Persistent Notification Popup --- */
 .modal-overlay.is-visible {
     position: fixed;
@@ -188,7 +204,7 @@ button[type="submit"]:disabled {
     align-items: center;
     gap: 12px;
     color: white;
-    padding: 14px 10px 14px 20px; 
+    padding: 14px 40px 14px 20px; 
     border-radius: 8px;
     font-weight: 600;
     font-size: 1rem;
@@ -201,39 +217,26 @@ button[type="submit"]:disabled {
     background-color: #f59e0b;
 }
 
-#persistent-notification .flash-text {
+#persistent-notification.flash-toast.warning .flash-dot {
+    background-color: #fef3c7;
+}
+
+#persistent-notification.flash-text {
     flex-grow: 1;
 }
 
-#persistent-notification .flash-close {
+#persistent-notification.flash-close {
     background: none;
     border: none;
     color: Black;
     font-size: 28px;
     line-height: 1;
     cursor: pointer;
+    font-weight: bolder;
 }
-#persistent-notification .flash-close:hover {
+
+#persistent-notification.flash-close:hover {
     color: red;
-}
-
-/* ===========================
-   5. ANIMATIONS & KEYFRAMES
-   =========================== */
-@keyframes slideIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes fadeOut {
-    to {
-        transform: translateY(0);
-        opacity: 0;
-        visibility: hidden;
-        height: 0;
-        margin: 0;
-        padding: 0;
-    }
 }
 
 @keyframes slideDown {
@@ -242,7 +245,7 @@ button[type="submit"]:disabled {
 }
 
 /* ===========================
-   6. RESPONSIVE MEDIA QUERIES
+   5. RESPONSIVE MEDIA QUERIES
    =========================== */
 @media screen and (max-width: 778px) {
     .search-box input {
@@ -253,6 +256,8 @@ button[type="submit"]:disabled {
 @media (max-width: 750px) {
     .main {
         margin-left: 50px;
+        height: calc(100vh - 20px);
+        overflow-y: auto;
     }
     .sidebar {
         position: fixed;
@@ -307,10 +312,10 @@ button[type="submit"]:disabled {
     .search-box {
         width: 200px;
     }
-    .search-box input {
+    .search-box input{
         width: 200px;
     }
-    .profile-section {
+    .profile-section{
         padding: 0px;
     }
 }

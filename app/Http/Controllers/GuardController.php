@@ -41,9 +41,120 @@ class GuardController extends Controller
             $query->whereDate('tanggal', now()->toDateString());
         }
 
-        $jadwals = $query->get();
+        $jadwals = $query->orderByDesc('status')->get();
 
-        return view('admin.fitur-3', compact('jadwals', 'lokasis', 'satpams', 'shifts'));
+        return view('KepalaSatpam.guard-data', compact('jadwals', 'lokasis', 'satpams', 'shifts'));
+    }
+
+    public function storeJadwal(Request $request)
+    {
+        $request->validate([
+            'start_date' => 'required|date',
+            'end_date'   => 'required|date|after_or_equal:start_date',
+            'assign'     => 'required|json',
+        ]);
+
+        $assignments = json_decode($request->assign, true);
+        if (empty($assignments)) {
+            return response()->json(['success' => false, 'message' => 'Data penugasan kosong.'], 422);
+        }
+
+        $start = Carbon::parse($request->start_date);
+        $end   = Carbon::parse($request->end_date);
+
+        // 1. Kumpulkan semua ID satpam dari modal yang disubmit
+        $allUserIdsInModal = [];
+        foreach ($assignments as $lokasiData) {
+            foreach ($lokasiData as $userIds) {
+                $allUserIdsInModal = array_merge($allUserIdsInModal, $userIds);
+            }
+        }
+        $allUserIdsInModal = array_unique($allUserIdsInModal);
+
+        if (empty($allUserIdsInModal)) {
+             return response()->json(['success' => false, 'message' => 'Tidak ada satpam yang dipilih.'], 422);
+        }
+        
+        // 2. Ambil semua jadwal yang SUDAH ADA untuk satpam-satpam tersebut pada rentang tanggal yang dipilih.
+        // Ini adalah kunci dari logika baru.
+        $existingJadwals = Jadwal::whereBetween('tanggal', [$start, $end])
+                                 ->whereIn('user_id', $allUserIdsInModal)
+                                 ->select('tanggal', 'user_id')
+                                 ->get()
+                                 ->groupBy('tanggal') // Kelompokkan berdasarkan tanggal
+                                 ->map(function ($items) {
+                                     // Jadikan daftar user_id untuk setiap tanggal
+                                     return $items->pluck('user_id')->all();
+                                 })
+                                 ->all();
+
+        $jadwalBatch = [];
+        $now = now();
+        $loggedInUserId = auth()->id();
+
+        // 3. Looping untuk setiap hari dari start_date hingga end_date
+        for ($date = $start->copy(); $date->lte($end); $date->addDay()) {
+            $tanggal = $date->format('Y-m-d');
+            
+            // Ambil daftar user yang sudah dijadwalkan pada tanggal ini. Jika tidak ada, array akan kosong.
+            $alreadyScheduledUserIds = $existingJadwals[$tanggal] ?? [];
+
+            // --- Proses Satpam yang Ditugaskan (On Duty) ---
+            foreach ($assignments as $lokasiId => $shifts) {
+                foreach ($shifts as $shiftId => $userIds) {
+                    // Abaikan satpam yang tidak ditugaskan (unassigned) di loop ini
+                    if ($lokasiId === "null" || $shiftId === "null") continue;
+
+                    foreach ($userIds as $userId) {
+                        // INILAH PENGECEKANNYA:
+                        // Jika user_id BELUM ADA di dalam daftar yang sudah terjadwal untuk hari ini,
+                        // maka tambahkan ke batch.
+                        if (!in_array($userId, $alreadyScheduledUserIds)) {
+                            $jadwalBatch[] = [
+                                'tanggal'    => $tanggal,
+                                'lokasi_id'  => $lokasiId,
+                                'shift_id'   => $shiftId,
+                                'user_id'    => $userId,
+                                'status'     => 'On Duty',
+                                'created_at' => $now,
+                                'updated_at' => $now,
+                                'created_by' => $loggedInUserId,
+                                'updated_by' => null
+                            ];
+                        }
+                    }
+                }
+            }
+            
+            // --- Proses Satpam yang Tidak Ditugaskan (Off Duty) ---
+            // Ambil dari list 'unassigned'
+            $unassignedUsers = $assignments['null']['null'] ?? [];
+            foreach ($unassignedUsers as $userId) {
+                // Lakukan pengecekan yang sama
+                if (!in_array($userId, $alreadyScheduledUserIds)) {
+                     $jadwalBatch[] = [
+                        'tanggal'    => $tanggal,
+                        'lokasi_id'  => null,
+                        'shift_id'   => null,
+                        'user_id'    => $userId,
+                        'status'     => 'Off Duty',
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                        'created_by' => $loggedInUserId,
+                        'updated_by' => null
+                    ];
+                }
+            }
+        }
+
+        // 4. Jika setelah semua pengecekan tidak ada jadwal baru untuk ditambahkan, beri pesan.
+        if (empty($jadwalBatch)) {
+            return response()->json(['success' => false, 'message' => 'Tidak ada jadwal baru untuk ditambahkan. Semua satpam pada tanggal tersebut sudah memiliki jadwal.'], 422);
+        }
+
+        Jadwal::insert($jadwalBatch);
+        session()->flash('success', 'Jadwal baru berhasil disimpan!');
+        return response()->json(['success' => true]);
     }
 
     public function update(Request $request, $id)
@@ -66,67 +177,5 @@ class GuardController extends Controller
         ]);
     }
 
-    // ===== modal helpers =====
-
-    public function checkJadwal(Request $request)
-    {
-        $request->validate([
-            'start_date' => 'required|date',
-            'end_date'   => 'required|date|after_or_equal:start_date',
-        ]);
-
-        $exists = Jadwal::whereBetween('tanggal', [$request->start_date, $request->end_date])->exists();
-        return response()->json(['exists' => $exists]);
-    }
-
-    public function storeJadwal(Request $request)
-    {
-        $request->validate([
-            'start_date' => 'required|date',
-            'end_date'   => 'required|date|after_or_equal:start_date',
-            'assign'     => 'required|json',
-        ]);
-
-        $assignments = json_decode($request->assign, true);
-        if (empty($assignments)) {
-            return response()->json(['success' => false, 'message' => 'Data penugasan kosong.'], 422);
-        }
-
-        $start = Carbon::parse($request->start_date);
-        $end   = Carbon::parse($request->end_date);
-
-        $jadwalBatch = [];
-        $now = now();
-        $loggedInUserId = auth()->id();
-
-        for ($date = $start->copy(); $date->lte($end); $date->addDay()) {
-            $tanggal = $date->format('Y-m-d');
-
-            foreach ($assignments as $lokasiId => $shifts) {
-                foreach ($shifts as $shiftId => $userIds) {
-                    foreach ($userIds as $userId) {
-                        $jadwalBatch[] = [
-                            'tanggal'   => $tanggal,
-                            'lokasi_id' => $lokasiId !== "null" ? $lokasiId : null,
-                            'shift_id'=> $shiftId  !== "null" ? $shiftId  : null,
-                            'user_id'   => $userId,
-                            'status'    => 'On Duty',
-                            'created_at'=> $now,
-                            'updated_at'=> $now,
-                            'created_by' => $loggedInUserId,
-                            'updated_by' => null
-                        ];
-                    }
-                }
-            }
-        }
-
-        if (empty($jadwalBatch)) {
-            return response()->json(['success' => false, 'message' => 'Tidak ada data untuk disimpan.'], 422);
-        }
-
-        Jadwal::insert($jadwalBatch);
-        session()->flash('success', 'Jadwal berhasil disimpan!');
-        return response()->json(['success' => true]);
-    }
+    
 }

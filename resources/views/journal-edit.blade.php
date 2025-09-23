@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @push('styles')
-    <link rel="stylesheet" href="{{ asset('css/satpam/journal-submission.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/journal-edit.css') }}">
 @endpush
 
 @section('content')
@@ -11,10 +11,6 @@
 <div id="top-anchor" class="journal-container">
     <h1>Edit Journal Submission</h1>
 
-    <div id="successMessage" class="flash-message success" style="display: none;">
-        Jurnal berhasil diperbarui.
-    </div>
-
     <form id="jurnalForm" action="{{ route('jurnal.update', $jurnal->id) }}" method="POST" enctype="multipart/form-data">
         @csrf
         @method('PUT')
@@ -22,7 +18,7 @@
         <div class="form-group-row">
             <div>
                 <label>Lokasi <i class="bi bi-asterisk"></i> </label>
-                <select name="lokasi_id" id="lokasiSelect" required>
+                <select name="lokasi_id" id="lokasiSelect" required disabled>
                     <option value="" disabled selected>-- Pilih Lokasi --</option>
                     @foreach($lokasis as $lokasi)
                         <option value="{{ $lokasi->id }}" {{ $jurnal->lokasi_id == $lokasi->id ? 'selected' : '' }}>
@@ -34,7 +30,7 @@
 
             <div>
                 <label>Shift <i class="bi bi-asterisk"></i> </label>
-                <select name="shift_id" id="shiftSelect" required>
+                <select name="shift_id" id="shiftSelect" required disabled>
                     <option value="" disabled selected>-- Pilih Shift --</option>
                     @foreach($shifts as $shift)
                         <option value="{{ $shift->id }}" {{ $jurnal->shift_id == $shift->id ? 'selected' : '' }}>
@@ -46,7 +42,7 @@
 
             <div>
                 <label>Tanggal <i class="bi bi-asterisk"></i> </label>
-                <input type="date" name="tanggal" value="{{ \Carbon\Carbon::parse($jurnal->tanggal)->format('Y-m-d') }}" required>
+                <input type="date" name="tanggal" value="{{ \Carbon\Carbon::parse($jurnal->tanggal)->format('Y-m-d') }}" required disabled>
             </div>
 
         </div>

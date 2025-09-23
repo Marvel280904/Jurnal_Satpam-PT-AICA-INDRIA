@@ -14,7 +14,7 @@ class AdminDashboardController extends Controller
         $locations = Lokasi::all();
         $recentActivities = RecentActivity::orderBy('created_at', 'desc')->take(5)->get();
 
-        return view('admin.dashboard', [
+        return view('Admin.dashboard', [
             'totalUsers' => Satpam::where('role', '!=', 'Admin')
                                 ->whereNotNull('role')
                                 ->count(),

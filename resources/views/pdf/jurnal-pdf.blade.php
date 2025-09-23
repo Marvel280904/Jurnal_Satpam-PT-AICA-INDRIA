@@ -186,7 +186,7 @@
         </tr>
         <tr>
             <td></td>
-            <td>{{ $jurnal->kejadian ?? '-' }}</td>
+            <td>{{ $jurnal->kejadian_temuan ?? '-' }}</td>
         </tr>
 
         <tr>
@@ -204,7 +204,7 @@
         </tr>
         <tr>
             <td></td>
-            <td>{{ $jurnal->proyek ?? '-' }}</td>
+            <td>{{ $jurnal->proyek_vendor ?? '-' }}</td>
         </tr>
 
         <tr>
@@ -213,7 +213,7 @@
         </tr>
         <tr>
             <td></td>
-            <td>{{ $jurnal->paket ?? '-' }}</td>
+            <td>{{ $jurnal->paket_dokumen ?? '-' }}</td>
         </tr>
 
         <tr>
@@ -222,7 +222,7 @@
         </tr>
         <tr>
             <td></td>
-            <td>{{ $jurnal->tamu ?? '-' }}</td>
+            <td>{{ $jurnal->tamu_belum_keluar ?? '-' }}</td>
         </tr>
 
         <tr>
@@ -231,7 +231,7 @@
         </tr>
         <tr>
             <td></td>
-            <td>{{ $jurnal->karyawan ?? '-' }}</td>
+            <td>{{ $jurnal->karyawan_dinas_keluar ?? '-' }}</td>
         </tr>
 
         <tr>
@@ -240,7 +240,7 @@
         </tr>
         <tr>
             <td></td>
-            <td>{{ $jurnal->barang ?? '-' }}</td>
+            <td>{{ $jurnal->barang_keluar ?? '-' }}</td>
         </tr>
 
         <tr>
@@ -249,7 +249,7 @@
         </tr>
         <tr>
             <td></td>
-            <td>{{ $jurnal->kendaraan ?? '-' }}</td>
+            <td>{{ $jurnal->kendaraan_dinas_keluar ?? '-' }}</td>
         </tr>
 
         <tr>
@@ -258,7 +258,7 @@
         </tr>
         <tr>
             <td></td>
-            <td>{{ $jurnal->lampu ?? '-' }}</td>
+            <td>{{ $jurnal->lampu_mati ?? '-' }}</td>
         </tr>
 
         <tr>

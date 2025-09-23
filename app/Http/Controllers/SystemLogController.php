@@ -21,6 +21,6 @@ class SystemLogController extends Controller
             ->latest()
             ->get();
 
-        return view('admin.fitur-3', compact('logs'));
+        return view('Admin.system-log', compact('logs'));
     }
 }

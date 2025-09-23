@@ -1,0 +1,317 @@
+/* ===========================
+   1. MODAL CONTAINER & LAYOUT
+   =========================== */
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.modal-content {
+    background: #fff;
+    border-radius: 8px;
+    width: clamp(900px, 92vw, 1100px);
+    max-height: 90vh;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+}
+
+.btn-close-modal {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+}
+.btn-close-modal:hover {
+    background: #ccc;
+}
+
+.jadwal-container {
+    padding: 10px 14px 12px 14px;
+    border-radius: 12px;
+    width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.jadwal-container h2 {
+    border-bottom: 2px solid #ccc;
+    padding-bottom: 6px;
+    margin: 0 0 12px 0;
+}
+
+.date-range {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+.date-range label {
+    font-weight: 600;
+    margin-top: 6px;
+}
+.date-range label i {
+    position: absolute;
+    font-size: 10px;
+    margin-left: 3px;
+    font-weight: 600;
+    color: red;
+}
+.date-range input {
+    margin-left: 10px;
+    padding: 6px 8px; 
+    border-radius: 6px; 
+    border: 1px solid #ccc;
+}
+
+/* ===========================
+   2. TWO-COLUMN LAYOUT (SATpam & Lokasi)
+   =========================== */
+.jadwal-flex {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 16px;
+    align-items: start;
+    overflow: hidden;
+}
+
+/* --- Left Column: List Satpam --- */
+.list-satpam {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 10px;
+    background: #fafafa;
+    max-height: 68vh;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+.satpam-list {
+    max-height: calc(70vh - 92px);
+    overflow-y: auto;
+}
+.satpam-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px;
+    border-bottom: 1px solid #eee;
+    font-size: 14px;
+}
+.satpam-item:last-child {
+    border-bottom: none;
+}
+.add-icon {
+    cursor: pointer;
+    color: #198754;
+    font-size: 16px;
+}
+.add-icon:hover {
+    color: #0f6e43;
+}
+.search-box3 {
+    display: flex;
+    align-items: center;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 4px 8px;
+    margin-bottom: 10px;
+    background: #fff;
+}
+.search-box3 i {
+    margin-right: 6px;
+    color: #666;
+}
+.search-box3 input {
+    border: none;
+    outline: none;
+    flex: 1;
+}
+
+/* --- Right Column: Lokasi & Shifts --- */
+.lokasi-container {
+    min-width: 0;
+    max-height: 68vh;
+    overflow: auto;
+    padding-right: 2px;
+    box-sizing: border-box;
+    margin-top: -5px;
+}
+.lokasi-block {
+    margin: 0 0 14px;
+}
+.lokasi-block h3 {
+    margin: 8px 0 8px;
+    font-size: 16px;
+}
+.lokasi-block i {
+    color: #c00;
+}
+.shift-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+}
+.shift-block {
+    border: 2px solid #000;
+    border-radius: 8px;
+    padding: 6px;
+    background: #fff;
+    min-height: 80px;
+}
+.shift-block label {
+    font-weight: 700;
+    display: block;
+    margin-bottom: 6px;
+}
+.shift-block label i {
+    color: #888;
+}
+.shift-block label .req {
+    font-size: 10px;
+    margin-left: 1px;
+    font-weight: 600;
+    color: red;
+    display: inline-block;
+    vertical-align: super;
+    margin-top: -2px;
+}
+.assigned-list {
+    min-height: 40px;
+}
+.assigned-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 6px;
+    border-bottom: 1px solid #eee;
+    font-size: 14px;
+}
+.assigned-item:last-child {
+    border-bottom: 0;
+}
+.remove-icon {
+    cursor: pointer;
+    font-size: larger;
+}
+.remove-icon:hover {
+    color: darkred;
+}
+.icon_user {
+    padding-right: 7px;
+    margin-left: -4px;
+}
+
+/* ===========================
+   3. "ADD TO" POPUP (Inside Modal)
+   =========================== */
+.popup-add {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.4);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+.popup-add .popup-content {
+    background: #fff;
+    padding: 14px;
+    border-radius: 8px;
+    width: 260px;
+}
+.popup-add .popup-content h3 {
+    margin: 0 0 8px;
+}
+.popup-add .popup-content label {
+    font: 700 14px/1.2 system-ui;
+    display: block;
+    margin-top: 8px;
+}
+.popup-add .popup-content select {
+    width: 100%;
+    padding: 6px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    margin-top: 4px;
+}
+.popup-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 6px;
+    margin-top: 10px;
+}
+.popup-buttons button {
+    padding: 6px 10px;
+    border: 0;
+    border-radius: 6px;
+    cursor: pointer;
+}
+#jadwalPopupCancel {
+    background: #e0e0e0;
+}
+#jadwalPopupAddBtn {
+    background: #007bff;
+    color: #fff;
+}
+#jadwalPopupAddBtn:hover {
+    background: #0056b3;
+}
+
+/* ===========================
+   4. MODAL FOOTER & SUBMIT BUTTON
+   =========================== */
+.form-footer {
+    position: sticky;
+    bottom: 0;
+    background: #fff;
+    padding: 0px 15px 10px 0px;
+    text-align: right;
+    z-index: 5;
+}
+
+.btn-submit {
+    background: #007bff;
+    color: #fff;
+    padding: 8px 16px;
+    border: 0;
+    border-radius: 6px;
+    cursor: pointer;
+}
+.btn-submit:hover {
+    background: #0056b3;
+}
+
+button[type="submit"]:disabled {
+    background-color: #cccccc;
+    color: #000000;
+    cursor: not-allowed;
+    border-color: #cccccc;
+}
+
+/* ===========================
+   5. RESPONSIVE MEDIA QUERIES
+   =========================== */
+@media (max-width: 900px) {
+    .modal-content {
+        width: 96vw;
+    }
+    .jadwal-flex {
+        grid-template-columns: 1fr;
+    }
+    .list-satpam {
+        max-height: 40vh;
+    }
+    .satpam-list {
+        max-height: calc(40vh - 92px);
+    }
+}

@@ -163,7 +163,7 @@ class AppServiceProvider extends ServiceProvider
                     $dateStr = Carbon::parse($rej->tanggal)->format('d F Y');
                     $reminders[] = [
                         'key'   => 'reject-'.$rej->id, 'icon'  => 'bi-journal-x',
-                        'title' => 'Journal Ditolak', 'desc'  => "Jurnal untuk tanggal {$dateStr} perlu direvisi.",
+                        'title' => 'Journal Rejected', 'desc'  => "Jurnal untuk tanggal {$dateStr} perlu direvisi.",
                         'url'   => route('log.history'),
                     ];
                 }

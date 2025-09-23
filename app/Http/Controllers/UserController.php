@@ -19,7 +19,7 @@ class UserController extends Controller
             ->orderBy('nama')
             ->get();
 
-        return view('admin.fitur-2', compact('users'));
+        return view('Admin.user-role', compact('users'));
     }
 
     // Store user baru

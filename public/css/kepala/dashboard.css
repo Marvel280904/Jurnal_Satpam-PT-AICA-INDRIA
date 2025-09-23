@@ -1,3 +1,6 @@
+/* ===========================
+   1. MAIN CONTAINER & HEADER
+   =========================== */
 .dashboard-kepala {
     padding: 20px;
     display: flex;
@@ -6,11 +9,15 @@
     background-color: #E6E9F4;
 }
 
-.dashboard-kepala h1{
+.dashboard-kepala h1 {
     margin-top: 0px;
     font-size: xx-large;
 }
 
+/* ===========================
+   2. TOP PANELS SECTION
+   (Wrapper untuk panel Lokasi/Shift & Status Jurnal)
+   =========================== */
 .top-panels {
     display: flex;
     flex-wrap: wrap;
@@ -31,12 +38,26 @@
     flex-direction: column;
 }
 
+.header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-row select {
+    background-color: #f0f0f0;
+    border-radius: 5px;
+    padding: 3px;
+    cursor: pointer;
+}
+
 .scroll-panel {
     overflow-y: auto;
     max-height: 190px;
     padding-right: 10px;
 }
 
+/* --- Components inside "Daftar Lokasi & Shift" Panel --- */
 .satpam-card {
     display: flex;
     align-items: center;
@@ -44,7 +65,6 @@
     padding: 10px 0;
     gap: 15px;
 }
-
 .satpam-card img {
     width: 40px;
     height: 40px;
@@ -52,27 +72,23 @@
     object-fit: cover;
 }
 .satpam-info {
-    display: flex;       /* Membuat gambar dan nama sejajar */
+    display: flex;
     align-items: center; 
-    gap: 10px;           /* Jarak antara gambar dan nama */
-    flex: 1;             /* Mengambil ruang sebanyak mungkin */
-    min-width: 0;        /* Mencegah teks meluap */
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
 }
-
 .satpam-info-loc {
     display: flex;
     align-items: center;
     gap: 8px;
-    flex-shrink: 0; /* Mencegah elemen ini menyusut */
+    flex-shrink: 0;
     flex: 0.5;
 }
-
-/* Tambahkan aturan baru ini untuk status */
 .satpam-info-status {
-    margin-left: auto; /* Mendorong status ke paling kanan */
-    flex-shrink: 0;    /* Mencegah status menyusut */
+    margin-left: auto;
+    flex-shrink: 0;
 }
-
 .lokasi-info {
     display: flex;
     align-items: center;
@@ -80,31 +96,11 @@
     color: #555;
     font-size: 0.9em;
 }
-
-.lokasi-info i{
+.lokasi-info i {
     color:rgb(215, 8, 8);
 }
 
-.empty-message {
-    padding: 1rem;
-    color: #888;
-    font-style: italic;
-    text-align: center;
-}
-
-.header-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.header-row select{
-    background-color: #e0dfdf;
-    border-radius: 5px;
-    padding: 3px;
-    cursor: pointer;
-}
-
+/* --- Components inside "Status Pengisian Jurnal" Panel --- */
 .jurnal-card {
     display: flex;
     align-items: center;
@@ -114,23 +110,9 @@
     gap: 10px;
 }
 
-.badge {
-    padding: 3px 8px;
-    border-radius: 10px;
-    font-size: 12px;
-    font-weight: bold;
-    text-transform: capitalize;
-}
-
-.badge.green { background-color: #28a745; color: #fff; }
-.badge.red { background-color: #dc3545; color: #fff; }
-.badge.yellow { background-color: #ffc107; color: #000; }
-.badge.approve { background-color: #28a745; color: #fff; }
-.badge.reject { background-color: #dc3545; color: #fff; }
-.badge.waiting { background-color: #ffc107; color: #000; }
-.badge.pink { background-color: #f8c1e1; color: #333; }
-.badge.blue { background-color: #d0e2ff; color: #333; }
-
+/* ===========================
+   3. HISTORY PANEL SECTION
+   =========================== */
 .history-panel {
     background: #fff;
     padding: 15px;
@@ -151,25 +133,49 @@
     border-bottom: 1px solid #ddd;
 }
 
-.col-date    { width: 21%;} 
-.col-location{ width: 17%; }
+.history-table .col-date { width: 23%; } 
+.history-table .col-location { width: 20%; }
+.history-table .col-name { width: 20%; }
 
-.row-white { background-color: #fff; }
-.row-grey { background-color: #f7f7f7; }
+.history-table .row-white { background-color: #fff; }
+.history-table .row-grey { background-color: #f2f2f2; }
 
-@media screen and (max-width: 768px) {
-    .top-panels {
-        flex-direction: column;
-    }
+/* ===========================
+   4. COMMON & UTILITY CLASSES
+   (Digunakan di beberapa bagian)
+   =========================== */
+.badge {
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: capitalize;
+}
+.badge.green { background-color: #28a745; color: #fff; }
+.badge.red { background-color: #dc3545; color: #fff; }
+.badge.yellow { background-color: #ffc107; color: #000; }
+.badge.approve { background-color: #28a745; color: #fff; }
+.badge.reject { background-color: #dc3545; color: #fff; }
+.badge.waiting { background-color: #ffc107; color: #000; }
+.badge.pink { background-color: #f8c1e1; color: #333; }
+.badge.blue { background-color: #d0e2ff; color: #333; }
+
+.empty-message {
+    padding: 1rem;
+    color: #888;
+    font-style: italic;
+    text-align: center;
 }
 
+/* ===========================
+   5. RESPONSIVE MEDIA QUERIES
+   =========================== */
 @media (max-width: 1040px) {
     .satpam-card {
-        flex-wrap: wrap; /* Supaya elemen bisa pindah baris */
+        flex-wrap: wrap;
     }
-
     .badge {
-        margin-top: 5px; /* Kasih jarak kalau pindah ke bawah */
+        margin-top: 5px;
     }
 }
 
@@ -179,3 +185,98 @@
     }
 }
 
+@media screen and (max-width: 778px) {
+    .top-panels {
+        flex-direction: column;
+    }
+    .search-box input {
+        width: 170px;
+    }
+}
+
+@media (max-width: 750px) {
+    .main {
+        margin-left: 50px;
+        height: calc(100vh - 20px);
+        overflow-y: auto;
+    }
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 250px;
+        height: 100vh;
+        background-color: #B6C3CF;
+        padding-top: 20px;
+        z-index: 1000;
+    }
+    .sidebar.collapsed {
+        width: 40px; 
+        padding-left: 10px;
+        padding-right: 5px;
+        transition: width 0.3s ease-in-out;
+    }
+    .sidebar.collapsed .nav a span {
+        display: none; 
+    }
+    .sidebar.collapsed .logo {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 10px;
+        padding: 10px 0;
+    }
+    .sidebar.collapsed .logo img {
+        max-height: 10px; 
+        width: auto;
+    }
+    .sidebar .nav a {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        gap: 10px;
+        text-decoration: none;
+        border-radius: 5px;
+        margin-bottom: 10px;
+        font-weight: 500;
+        color: black;
+    }
+    .sidebar .nav a i {
+        font-size: 18px;
+    }
+    .sidebar .nav a.active,
+    .sidebar .nav a:hover {
+        background-color: #384458;
+        color: white;
+    }
+    .search-box {
+        width: 200px;
+    }
+    .search-box input{
+        width: 200px;
+    }
+    .profile-section{
+        padding: 0px;
+    }
+}
+
+@media (max-width: 538px) {
+    .topbar1 {
+        justify-content: center;
+        justify-items: center;
+        justify-self: center;
+        margin-left: 5px;
+        padding: 10px 10px;
+    }
+    .search-box {
+        width: 130px;
+    }
+    .search-box input {
+        width: 140px;
+    }
+    .topbar1 .notif {
+        margin: 0px;
+        padding-right: 7px;
+    }
+}

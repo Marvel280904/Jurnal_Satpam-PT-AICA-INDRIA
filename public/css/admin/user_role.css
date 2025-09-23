@@ -1,3 +1,6 @@
+/* ===========================
+   1. MAIN CONTAINER & HEADER
+   =========================== */
 .user-role-container {
     padding: 20px;
 }
@@ -14,6 +17,9 @@
     margin: 0;
 }
 
+/* ===========================
+   2. CONTROLS (SEARCH & ADD BUTTON)
+   =========================== */
 .user-role-controls {
     display: flex;
     justify-content: flex-end;
@@ -38,7 +44,7 @@
     padding: 7px 10px 6px 32px;
     border-radius: 8px;
     border: 1px solid #ccc;
-    width: 200px;
+    width: 230px;
 }
 
 .add-btn {
@@ -54,11 +60,14 @@
     cursor: pointer;
 }
 
-.data-container{
+/* ===========================
+   3. DATA TABLE
+   =========================== */
+.data-container {
     background: white;
     width: 96%;
     border-collapse: collapse;
-    overflow: hidden;
+    overflow-x: scroll;
     border-radius: 15px;
     padding: 20px;
     box-shadow: 0 3px 8px rgba(0,0,0,0.1);
@@ -76,11 +85,11 @@
     border-bottom: 2px solid #eee;
 }
 
-.row-white {
+.user-table .row-white {
     background-color: #fff;
 }
 
-.row-grey {
+.user-table .row-grey {
     background-color: #f3f3f3;
 }
 
@@ -92,6 +101,18 @@
     font-size: 16px;
 }
 
+.empty-text {
+    font-style: italic;
+    color: #888;
+    margin-top: 20px;
+    padding-left: 10px;
+}
+
+/* ===========================
+   4. POPUPS / MODALS (ADD, EDIT, CONFIRM DELETE)
+   =========================== */
+
+/* --- General Popup Wrapper --- */
 .popup {
     display: none;
     position: fixed;
@@ -114,6 +135,7 @@
     border-radius: 10px;
     min-width: 300px;
     max-width: 400px;
+    position: relative;
 }
 
 .popup-content h3 {
@@ -126,9 +148,12 @@
     font-weight: 600;
 }
 
-.popup-content label i{
-    position: absolute; font-size: 10px;
-    margin-left: 3px; font-weight: 600; color: red;
+.popup-content label i {
+    position: absolute;
+    font-size: 10px;
+    margin-left: 3px;
+    font-weight: 600;
+    color: red;
 }
 
 .popup-content input {
@@ -158,27 +183,10 @@
 }
 
 button[type="submit"]:disabled {
-  background-color: #cccccc; /* Warna abu-abu */
-  color: #000000;            /* Warna teks hitam */
-  cursor: not-allowed;      /* Mengubah ikon cursor saat di-hover */
-  border-color: #cccccc;      /* Menyamakan warna border */
-}
-
-.close-btn {
-    float: right;
-    font-size: 20px;
-    cursor: pointer;
-}
-
-.empty-text {
-    font-style: italic;
-    color: #888;
-    margin-top: 20px;
-    padding-left: 10px;
-}
-
-.popup-content {
-    position: relative;
+    background-color: #cccccc;
+    color: #000000;
+    cursor: not-allowed;
+    border-color: #cccccc;
 }
 
 .close-btn {
@@ -189,115 +197,45 @@ button[type="submit"]:disabled {
     font-weight: bold;
     cursor: pointer;
     color: #444;
+    float: right; /* From original code */
 }
 
 .close-btn:hover {
     color: red;
 }
 
-/* NOTIFIKASI */
-/* === Flash Toast (Top Center) === */
-.flash-toast{
-  position: fixed;
-  top: 30px;
-  left: 60%;
-  transform: translateX(-50%);
-  z-index: 99999;
-  min-width: 320px;
-  max-width: 90vw;
-  background: #ffffff;
-  color: #0f172a;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0,0,0,.15);
-  padding: 12px 44px 12px 14px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  border: 1px solid rgba(2,6,23,.08);
-  animation: flashSlideIn .25s ease-out;
-}
-
-/* indikator kiri kecil */
-.flash-toast .flash-dot{
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-  display: inline-block;
-}
-
-/* tombol close */
-.flash-toast .flash-close{
-  position: absolute;
-  right: 10px;
-  top: 8px;
-  font-size: 20px;
-  line-height: 1;
-  border: 0;
-  background: transparent;
-  color: #64748b;
-  cursor: pointer;
-}
-
-/* variasi warna */
-.flash-toast.success { border-left: 6px solid #16a34a; }
-.flash-toast.success .flash-dot { background:#16a34a; }
-
-.flash-toast.warning { border-left: 6px solid #eab308; }
-.flash-toast.warning .flash-dot { background:#eab308; }
-
-.flash-toast.error { border-left: 6px solid #ef4444; }
-.flash-toast.error .flash-dot { background:#ef4444; }
-
-/* animasi masuk/keluar */
-@keyframes flashSlideIn{
-  from{ transform: translate(-50%, -8px); opacity:0; }
-  to  { transform: translate(-50%, 0);    opacity:1; }
-}
-.flash-toast.hide{
-  animation: flashFadeOut .25s ease-in forwards;
-}
-@keyframes flashFadeOut{
-  to{ transform: translate(-50%, -8px); opacity:0; }
-}
-
-
-/* Style untuk popup konfirmasi hapus */
+/* --- Confirmation Delete Modal --- */
 .modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    /* Latar belakang semi-transparan, tapi kontennya tidak terpengaruh */
-    background-color: rgba(0, 0, 0, 0.4); 
+    background-color: rgba(0, 0, 0, 0.4);
     display: flex;
-    justify-content: center; /* Pusatkan secara horizontal */
-    align-items: flex-start;  /* Mulai dari atas */
+    justify-content: center;
+    align-items: flex-start;
     z-index: 1000;
-    padding-top: 20px; /* Jarak dari atas layar */
+    padding-top: 20px;
 }
 
-/* Konten modal yang akan kita animasikan */
 .modal-overlay .modal-content {
-    /* Style dari .flash-message Anda */
-    background-color: #ffffff; /* Ubah agar lebih cocok untuk konfirmasi */
+    background-color: #ffffff;
     color: #333;
     padding: 0px 20px 10px 20px;
     border-radius: 8px;
-    font-weight: bold; font-size: large;
+    font-weight: bold;
+    font-size: large;
     box-shadow: 0 8px 16px rgba(0,0,0,0.2);
     text-align: center;
     margin-left: 10%;
-    /* Awalnya disembunyikan */
-    opacity: 0; 
+    opacity: 0;
 }
 
-/* Kelas untuk memicu animasi masuk */
 .modal-overlay .modal-content.show {
     animation: modalSlideDown 0.4s ease-out forwards;
 }
 
-/* Kelas untuk memicu animasi keluar */
 .modal-overlay .modal-content.hide {
     animation: modalFadeOut 0.4s ease-in forwards;
 }
@@ -323,29 +261,190 @@ button[type="submit"]:disabled {
 }
 
 .btn-confirm-delete {
-    background-color: #ef4444; /* Merah */
+    background-color: #ef4444;
     color: white;
 }
 
-/* Keyframes yang Anda berikan, disesuaikan agar tetap di tengah */
 @keyframes modalSlideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-50px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(-50px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes modalFadeOut {
-    from {
-        opacity: 1;
-        transform: translateY(0);
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(-50px); }
+}
+
+
+/* ===========================
+   5. NOTIFICATION COMPONENTS
+   =========================== */
+
+/* --- Flash Toast (Top Center) --- */
+.flash-toast {
+    position: fixed;
+    top: 30px;
+    left: 60%;
+    transform: translateX(-50%);
+    z-index: 99999;
+    min-width: 320px;
+    max-width: 90vw;
+    background: #ffffff;
+    color: #0f172a;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.15);
+    padding: 12px 44px 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid rgba(2,6,23,.08);
+    animation: flashSlideIn .25s ease-out;
+}
+.flash-toast .flash-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    display: inline-block;
+}
+.flash-toast .flash-close {
+    position: absolute;
+    right: 10px;
+    top: 8px;
+    font-size: 20px;
+    line-height: 1;
+    border: 0;
+    background: transparent;
+    color: #64748b;
+    cursor: pointer;
+}
+.flash-toast.success { border-left: 6px solid #16a34a; }
+.flash-toast.success .flash-dot { background:#16a34a; }
+.flash-toast.warning { border-left: 6px solid #eab308; }
+.flash-toast.warning .flash-dot { background:#eab308; }
+.flash-toast.error { border-left: 6px solid #ef4444; }
+.flash-toast.error .flash-dot { background:#ef4444; }
+
+.flash-toast.hide {
+    animation: flashFadeOut .25s ease-in forwards;
+}
+@keyframes flashSlideIn { from { transform: translate(-50%, -8px); opacity:0; } to { transform: translate(-50%, 0); opacity:1; } }
+@keyframes flashFadeOut { to { transform: translate(-50%, -8px); opacity:0; } }
+
+/* --- Form Error Messages (in Popups) --- */
+.form-errors {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+    padding: 1rem;
+    border-radius: 5px;
+    margin-bottom: 1rem;
+    text-align: left;
+    display: none;
+}
+.form-errors.show {
+    display: block !important;
+    animation: slideInDown 0.4s ease-out forwards;
+}
+.form-errors.hide {
+    animation: slideOutUp 0.4s ease-in forwards;
+}
+.form-errors ul {
+    margin: 0;
+    padding-left: 20px;
+    list-style-type: disc;
+}
+.form-errors li {
+    margin-bottom: 5px;
+}
+.form-errors li:last-child {
+    margin-bottom: 0;
+}
+@keyframes slideInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes slideOutUp { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-20px); } }
+
+/* ===========================
+   6. RESPONSIVE MEDIA QUERIES
+   (Catatan: Sebagian besar style responsive ini lebih cocok di app.css)
+   =========================== */
+@media (max-width: 750px) {
+    .main {
+        margin-left: 50px;
+        height: calc(100vh - 20px);
+        overflow-y: auto;
     }
-    to {
-        opacity: 0;
-        transform: translateY(-50px);
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 250px;
+        height: 100vh;
+        background-color: #B6C3CF;
+        padding-top: 20px;
+        z-index: 1000;
+    }
+    .sidebar.collapsed {
+        width: 40px; 
+        padding-left: 10px;
+        padding-right: 5px;
+        transition: width 0.3s ease-in-out;
+    }
+    .sidebar.collapsed .nav a span {
+        display: none; 
+    }
+    .sidebar.collapsed .logo {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 10px;
+        padding: 10px 0;
+    }
+    .sidebar.collapsed .logo img {
+        max-height: 10px; 
+        width: auto;
+    }
+    .sidebar .nav a {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        gap: 10px;
+        text-decoration: none;
+        border-radius: 5px;
+        margin-bottom: 10px;
+        font-weight: 500;
+        color: black;
+    }
+    .sidebar .nav a i {
+        font-size: 18px;
+    }
+    .sidebar .nav a.active,
+    .sidebar .nav a:hover {
+        background-color: #384458;
+        color: white;
+    }
+    .search-box {
+        width: 200px;
+    }
+    .search-box input {
+        width: 200px;
+    }
+    .profile-section {
+        padding: 0px;
+    }
+
+    .data-container {
+        width: 94%;
+    }
+}
+
+@media (max-width: 538px) {
+    .search-box {
+        width: 130px;
+    }
+    .search-box input {
+        width: 140px;
+    }
+    .data-container {
+        width: 92%;
     }
 }

@@ -1,3 +1,6 @@
+/* ===========================
+   1. MAIN CONTAINER & HEADER
+   =========================== */
 .table-bg {
     padding: 20px;
     background-color: #E6E9F4;
@@ -9,7 +12,90 @@ h1 {
     font-size: xx-large;
 }
 
-.table-main{
+/* ===========================
+   2. FILTER BAR
+   =========================== */
+.filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.filter-bar .filter-select,
+.filter-bar .filter-date,
+.filter-bar .filter-search,
+.filter-bar .btn-tambah-jadwal {
+    flex: 1 1 auto;
+    min-width: 150px;
+    cursor: pointer;
+}
+
+.filter-select {
+    padding: 7px 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+    background-color: #fff;
+    color: #333;
+    min-width: 140px;
+}
+
+.filter-date {
+    padding: 6px 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    justify-content: right;
+}
+
+.btn-tambah-jadwal {
+    background-color: #007bff;
+    color: white;
+    padding: 6px 14px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+.btn-tambah-jadwal:hover {
+    background-color: #0056b3;
+}
+
+.filter-search {
+    display: flex;
+    align-items: center;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 4px 10px;
+    flex: 1;
+    max-width: 250px;
+}
+
+.filter-search i.bi-search {
+    margin-right: 8px;
+    font-size: 1.2rem;
+    color: #333;
+}
+
+.filter-search input[type="text"] {
+    border: none;
+    outline: none;
+    flex: 1;
+    font-size: 1rem;
+    background-color: transparent;
+}
+
+
+/* ===========================
+   3. MAIN DATA TABLE
+   =========================== */
+.table-main {
     background: white;
     padding: 20px;
     border-radius: 20px;
@@ -38,11 +124,11 @@ th {
 }
 
 .table-container tbody tr:nth-child(odd) {
-    background-color: #ffffff; /* putih */
+    background-color: #ffffff;
 }
 
 .table-container tbody tr:nth-child(even) {
-    background-color: #f2f2f2; /* abu-abu terang */
+    background-color: #f2f2f2;
 }
 
 .status-badge {
@@ -62,214 +148,182 @@ th {
     background-color: #f66;
 }
 
-/* bagian filter */
-
-.filter-bar {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    align-items: center;
-    margin-bottom: 1rem;
+.kosong {
+    text-align: center;
 }
 
-/* beri sizing dasar supaya bisa shrink/grow */
-.filter-bar .filter-select,
-.filter-bar .filter-date,
-.filter-bar .filter-search,
-.filter-bar .btn-tambah-jadwal {
-  flex: 1 1 auto;
-  min-width: 150px;
-  cursor: pointer;
-}
-
-.filter-select {
-    padding: 7px 12px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    font-size: 14px;
-    background-color: #fff;
-    color: #333;
-    min-width: 140px;
-}
-
-.filter-search {
-    display: flex;
-    align-items: center;
-    background-color: white;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    padding: 4px 10px;
-    flex: 1;
-    max-width: 250px;
-}
-
-.filter-search i.bi-search {
-    margin-right: 8px;
-    font-size: 1.2rem;
-    color: #333;
-}
-
-.filter-search input[type="text"] {
-    border: none;
-    outline: none;
-    flex: 1;
-    font-size: 1rem;
-    background-color: transparent;
-}
-
-.filter-date {
-    padding: 6px 10px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    justify-content: right;
-}
-
-.btn-tambah-jadwal {
-    background-color: #007bff;
+/* ===========================
+   4. NOTIFICATION MESSAGE
+   =========================== */
+.flash-message {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #4CAF50;
     color: white;
-    padding: 6px 14px;
-    border: none;
+    padding: 16px 32px;
     border-radius: 8px;
-    cursor: pointer;
     font-weight: bold;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    z-index: 9999;
+    opacity: 0;
+    animation: slideDown 0.5s ease-out forwards, fadeOut 0.5s ease-in 3.5s forwards;
 }
 
-.btn-tambah-jadwal:hover {
-    background-color: #0056b3;
+@keyframes slideDown {
+    0% { opacity: 0; transform: translate(-20%, -40px); }
+    100% { opacity: 1; transform: translate(-20%, 0); }
 }
 
-/* Modal container */
-.modal {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
+@keyframes fadeOut {
+    to { opacity: 0; transform: translate(-20%, -40px); }
 }
 
-/* Keep modal width fixed-ish and prevent double scrollbars here */
-.modal-content {
-  background: #fff;
-  border-radius: 8px;
-  width: clamp(900px, 92vw, 1100px);
-  max-height: 90vh;
-  padding: 10px;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;        /* <-- important: modal itself doesn’t scroll */
-  position: relative;
-}
-
-.btn-close-modal {
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    background: none;
-    border: none;
-    font-size: 24px;
-    cursor: pointer;
-}
-
-.btn-close-modal:hover {
-    background: #ccc;
-}
-
-.kosong{
-  text-align: center;
-}
-
-/* MESSAGE NOTIFICATION */
-.flash-message { 
-    position: fixed; 
-    top: 20px; 
-    left: 50%; 
-    transform: translateX(-50%); 
-    background-color: #4CAF50; 
-    color: white; 
-    padding: 16px 32px; 
-    border-radius: 8px; 
-    font-weight: bold; 
-    box-shadow: 0 8px 16px rgba(0,0,0,0.2); 
-    z-index: 9999; 
-    opacity: 0; 
-    animation: slideDown 0.5s ease-out forwards, fadeOut 0.5s ease-in 3.5s forwards; 
-} 
-
-@keyframes slideDown { 
-    0% { opacity: 0; transform: translate(-20%, -40px); } 
-    100% { opacity: 1; transform: translate(-20%, 0); } 
-} 
-
-@keyframes fadeOut { 
-    to { opacity: 0; transform: translate(-20%, -40px); } 
-} 
-
+/* ===========================
+   5. RESPONSIVE MEDIA QUERIES
+   =========================== */
 @media (max-width: 1040px) {
-  .filter-bar {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    align-items: center;
-  }
-
-  /* jadikan search 100% baris sendiri */
-  .filter-bar .filter-search {
-    flex: 1 1 100%;
-    max-width: none;     /* override max-width:250px */
-    width: 100%;
-    order: 3;            /* taruh di baris bawah */
-  }
+    .filter-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+    }
+    .filter-bar .filter-search {
+        flex: 1 1 100%;
+        max-width: none;
+        width: 100%;
+        order: 3;
+    }
 }
 
-/* ====== 800px: search juga full width ====== */
 @media (max-width: 800px) {
-  .filter-bar .filter-search {
-    flex: 1 1 100%;
-    max-width: none;
-    width: 100%;
-    order: 3;
-  }
+    .filter-bar .filter-search {
+        flex: 1 1 100%;
+        max-width: none;
+        width: 100%;
+        order: 3;
+    }
 }
 
-/* ====== 768px: date & button sejajar; search full width ====== */
 @media (max-width: 768px) {
-  .filter-bar {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
+    .filter-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .filter-bar .filter-select {
+        flex: 1 1 calc(50% - 8px);
+        min-width: 0;
+        order: 1;
+    }
+    .filter-bar .filter-date,
+    .filter-bar .btn-tambah-jadwal {
+        flex: 1 1 calc(50% - 8px);
+        min-width: 0;
+        order: 2;
+    }
+    .filter-bar .filter-search {
+        flex: 1 1 100%;
+        max-width: none;
+        width: 100%;
+        order: 3;
+    }
+    .filter-bar .filter-search input {
+        padding-right: 0;
+    }
+}
 
-  /* Baris 1: Location + Shift */
-  .filter-bar .filter-select {
-    flex: 1 1 calc(50% - 8px);
-    min-width: 0;
-    order: 1;
-  }
+@media screen and (max-width: 778px) {
+    .search-box input {
+        width: 170px;
+    }
+}
 
-  /* Baris 2: Date + Tambah Jadwal (sejajar) */
-  .filter-bar .filter-date,
-  .filter-bar .btn-tambah-jadwal {
-    flex: 1 1 calc(50% - 8px);
-    min-width: 0;
-    order: 2;
-  }
+@media (max-width: 750px) {
+    .main {
+        margin-left: 50px;
+        height: calc(100vh - 20px);
+        overflow-y: auto;
+    }
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 250px;
+        height: 100vh;
+        background-color: #B6C3CF;
+        padding-top: 20px;
+        z-index: 1000;
+    }
+    .sidebar.collapsed {
+        width: 40px; 
+        padding-left: 10px;
+        padding-right: 5px;
+        transition: width 0.3s ease-in-out;
+    }
+    .sidebar.collapsed .nav a span {
+        display: none; 
+    }
+    .sidebar.collapsed .logo {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 10px;
+        padding: 10px 0;
+    }
+    .sidebar.collapsed .logo img {
+        max-height: 10px; 
+        width: auto;
+    }
+    .sidebar .nav a {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        gap: 10px;
+        text-decoration: none;
+        border-radius: 5px;
+        margin-bottom: 10px;
+        font-weight: 500;
+        color: black;
+    }
+    .sidebar .nav a i {
+        font-size: 18px;
+    }
+    .sidebar .nav a.active,
+    .sidebar .nav a:hover {
+        background-color: #384458;
+        color: white;
+    }
+    .search-box {
+        width: 200px;
+    }
+    .search-box input{
+        width: 200px;
+    }
+    .profile-section{
+        padding: 0px;
+    }
+}
 
-  /* Baris 3: Search 100% */
-  .filter-bar .filter-search {
-    flex: 1 1 100%;
-    max-width: none;
-    width: 100%;
-    order: 3;
-  }
-
-  /* kecilkan padding input agar tidak bikin overflow */
-  .filter-bar .filter-search input {
-    padding-right: 0;
-  }
+@media (max-width: 538px) {
+    .topbar1 {
+        justify-content: center;
+        justify-items: center;
+        justify-self: center;
+        margin-left: 5px;
+        padding: 10px 10px;
+    }
+    .search-box {
+        width: 130px;
+    }
+    .search-box input {
+        width: 140px;
+    }
+    .topbar1 .notif {
+        margin: 0px;
+        padding-right: 7px;
+    }
 }

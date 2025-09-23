@@ -17,7 +17,7 @@ class LocationShiftController extends Controller
         $locations = Lokasi::all(); 
         $shifts = Shift::all();     
 
-        return view('admin.fitur-1', compact('locations', 'shifts'));
+        return view('Admin.loc-shift', compact('locations', 'shifts'));
     }
 
     public function storeLocation(Request $request)
@@ -47,9 +47,17 @@ class LocationShiftController extends Controller
         $validated = $validator->validated();
 
         if ($request->hasFile('foto')) {
-            $originalName = $request->file('foto')->getClientOriginalName();
-            $path = $request->file('foto')->storeAs('locations', $originalName, 'public');
-            $validated['foto'] = $path;
+            $file = $request->file('foto');
+            $originalName = $file->getClientOriginalName();
+            
+            // Tentukan folder tujuan di dalam direktori 'public'
+            $destinationPath = public_path('/locations');
+            
+            // Pindahkan file ke folder tujuan
+            $file->move($destinationPath, $originalName);
+            
+            // Simpan path yang relatif terhadap folder public
+            $validated['foto'] = 'locations/' . $originalName;
         }
 
         Lokasi::create($validated);
@@ -61,6 +69,7 @@ class LocationShiftController extends Controller
         ]);
 
         session()->flash('success', 'Berhasil menambahkan lokasi.');
+        session()->flash('flash_type', 'success');
         return response()->json(['success' => true, 'redirect_url' => route('location.shift.index')]);
     }
 
@@ -93,8 +102,18 @@ class LocationShiftController extends Controller
         $validated = $validator->validated();
 
         if ($request->hasFile('foto')) {
-            $originalName = $request->file('foto')->getClientOriginalName();
-            $validated['foto'] = $request->file('foto')->storeAs('locations', $originalName, 'public');
+            // Opsional: Hapus file lama sebelum mengupload yang baru
+            if ($location->foto && file_exists(public_path($location->foto))) {
+                unlink(public_path($location->foto));
+            }
+            
+            $file = $request->file('foto');
+            $originalName = $file->getClientOriginalName();
+            $destinationPath = public_path('/locations');
+            $file->move($destinationPath, $originalName);
+            
+            // Simpan path baru ke data yang akan diupdate
+            $validated['foto'] = 'locations/' . $originalName;
         }
 
         $location->update($validated);
@@ -106,6 +125,7 @@ class LocationShiftController extends Controller
         ]);
 
         session()->flash('success', 'Berhasil mengupdate lokasi.');
+        session()->flash('flash_type', 'success');
         return response()->json(['success' => true, 'redirect_url' => route('location.shift.index')]);
     }
 
@@ -114,7 +134,7 @@ class LocationShiftController extends Controller
         $rules = [
             'nama_shift'    => 'required|string|max:50|unique:shifts,nama_shift',
             'mulai_shift'   => 'required',
-            'selesai_shift' => 'required|after:mulai_shift',
+            'selesai_shift' => 'required',
         ];
 
         $messages = [
@@ -122,7 +142,6 @@ class LocationShiftController extends Controller
             'nama_shift.required' => 'Nama shift wajib diisi',
             'mulai_shift.required' => 'Jam mulai wajib diisi',
             'selesai_shift.required' => 'Jam selesai wajib diisi',
-            'selesai_shift.after' => 'Jam selesai harus setelah jam mulai',
         ];
 
         $validator = Validator::make($request->all(), $rules, $messages);
@@ -149,6 +168,7 @@ class LocationShiftController extends Controller
         ]);
 
         session()->flash('success', 'Berhasil menambahkan shift.');
+        session()->flash('flash_type', 'success');
         return response()->json(['success' => true, 'redirect_url' => route('location.shift.index')]);
     }
 
@@ -159,15 +179,14 @@ class LocationShiftController extends Controller
         $rules = [
             'nama_shift' => ['required','string','max:50', Rule::unique('shifts','nama_shift')->ignore($shift->id)],
             'mulai_shift'   => 'required',
-            'selesai_shift' => 'required|after:mulai_shift',
+            'selesai_shift' => 'required',
         ];
 
         $messages = [
             'nama_shift.unique' => 'Shift sudah ada',
             'nama_shift.required' => 'Nama shift wajib diisi',
             'mulai_shift.required' => 'Jam mulai wajib diisi',
-            'selesai_shift.required' => 'Jam selesai wajib diisi',
-            'selesai_shift.after' => 'Jam selesai harus setelah jam mulai',
+            'selesai_shift.required' => 'Jam selesai wajib diisi', 
         ];
 
         $validator = Validator::make($request->all(), $rules, $messages);
@@ -195,6 +214,7 @@ class LocationShiftController extends Controller
         ]);
 
         session()->flash('success', 'Berhasil mengupdate shift.');
+        session()->flash('flash_type', 'success');
         return response()->json(['success' => true, 'redirect_url' => route('location.shift.index')]);
     }
 
@@ -212,9 +232,10 @@ class LocationShiftController extends Controller
             'severity' => $lokasi->is_active ? 'info' : 'warning'
         ]);
 
-        return back()
-            ->with('flash_type', $lokasi->is_active ? 'success' : 'warning')
-            ->with('success', 'Berhasil '.$statusText.' lokasi.');
+        session()->flash('flash_type', $lokasi->is_active ? 'success' : 'warning');
+        session()->flash('success', 'Berhasil '.$statusText.' lokasi.');
+
+        return back();
     }
 
     public function toggleStatusShift($id)
@@ -232,9 +253,10 @@ class LocationShiftController extends Controller
             'severity' => $shift->is_active ? 'info' : 'warning'
         ]);
 
-        return back()
-            ->with('flash_type', $shift->is_active ? 'success' : 'warning')
-            ->with('success', 'Berhasil '.$statusText.' shift.');
+        session()->flash('flash_type', $shift->is_active ? 'success' : 'warning');
+        session()->flash('success', 'Berhasil '.$statusText.' shift.');
+
+        return back();
     }
 
 }

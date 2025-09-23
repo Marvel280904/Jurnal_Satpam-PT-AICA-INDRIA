@@ -80,6 +80,7 @@ Route::middleware('auth', 'prevent-back-history')->group(function () {
     Route::post('/journal-submission', [JurnalSatpamController::class, 'store'])->name('jurnal.store');
     Route::get('/shifts/by-location/{id}', [JurnalSatpamController::class, 'getByLocation']);
     Route::get('/jurnal/edit/{id}', [JurnalSatpamController::class, 'edit'])->name('jurnal.edit');
+    Route::get('/jurnal/copy/{id}', [JurnalSatpamController::class, 'copy'])->name('jurnal.copy');
     Route::delete('/jurnal/delete/{id}', [JurnalSatpamController::class, 'destroy'])->name('jurnal.destroy');
     Route::put('/jurnal/{id}/update', [JurnalSatpamController::class, 'update'])->name('jurnal.update');
 

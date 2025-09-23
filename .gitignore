@@ -3,6 +3,8 @@
 /public/build
 /public/hot
 /public/storage
+/public/jurnal_uploads
+/public/locations
 /storage/*.key
 /storage/pail
 /vendor

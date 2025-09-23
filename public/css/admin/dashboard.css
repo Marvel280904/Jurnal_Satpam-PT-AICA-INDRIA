@@ -1,168 +1,11 @@
+/* ===========================
+   1. GENERAL PAGE & LAYOUT
+   (Style dasar untuk body dan wrapper utama)
+   =========================== */
 body, html {
     margin: 0;
     font-family: 'Inter', sans-serif;
     background-color: #F6F1F1;
-}
-
-.container {
-    display: flex;
-    height: 100vh;
-}
-
-.sidebar {
-    width: 230px;
-    background-color: #B6C3CF;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-}
-
-.sidebar .logo {
-    margin-bottom: 30px;
-}
-
-.sidebar .logo img {
-    height: 50px;
-    margin-bottom: 10px;
-}
-
-.sidebar .nav a {
-    display: flex;
-    position: relative;
-    align-items: center;
-    gap: 10px;
-    color: black;
-    padding: 10px;
-    text-decoration: none;
-    border-radius: 5px;
-    margin-bottom: 10px;
-    font-weight: 500;
-}
-
-.sidebar .nav a span {
-    flex: 1;
-}
-
-.sidebar .nav a.active,
-.sidebar .nav a:hover {
-    color: white;
-    background-color: #384458;
-}
-
-.sidebar .nav a::before {
-    content: '';
-    position: absolute;
-    left: -10px;
-    top: 0;
-    width: 4px;
-    height: 100%;
-    background-color: transparent;
-    transition: background-color 0.3s;
-    border-radius: 0 4px 4px 0;
-}
-
-.sidebar .nav a.active::before,
-.sidebar .nav a:hover::before {
-    background-color: #384458;
-}
-
-.main {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    height: calc(100vh - 20px);
-    overflow-y: auto;
-}
-
-.topbar {
-    background-color: #384458;
-    padding: 10px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    color: white;
-}
-
-.search-box {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-
-.search-icon {
-    position: absolute;
-    left: 12px;
-    color: #888;
-    font-size: 16px;
-}
-
-.search-box input {
-    padding: 8px 14px 8px 35px;
-    border-radius: 20px;
-    border: none;
-    width: 200px;
-}
-
-.profile-section {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    position: relative;
-}
-
-
-.profile-pic {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    object-fit: cover;
-}
-
-.profile-name span {
-    display: block;
-    font-weight: bold;
-}
-
-.profile-name small {
-    font-size: 12px;
-    color: #ccc;
-}
-
-.dropdown {
-    position: relative;
-}
-
-.dropdown-menu {
-    display: none;
-    position: absolute;
-    right: 0;
-    top: 36px;
-    background-color: white;
-    color: black;
-    box-shadow: 0 0 10px rgba(0,0,0,0.2);
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    z-index: 999;
-    width: 150px;
-    border-radius: 5px;
-    overflow: hidden;
-}
-
-.dropdown-menu li a {
-    display: block;
-    padding: 10px 15px;
-    text-decoration: none;
-    color: black;
-    cursor: pointer;
-}
-
-.dropdown-menu li a:hover {
-    background-color: #eee;
-}
-
-.dropdown .show {
-    display: block;
 }
 
 .dashboard {
@@ -171,11 +14,15 @@ body, html {
     flex: 1;
 }
 
-.dashboard h1{
+.dashboard h1 {
     margin-top: 0px;
     font-size: xx-large;
 }
 
+/* ===========================
+   2. TOP SECTION: STATISTICS & MANAGE
+   (Komponen yang ada di dalam .stats-manage)
+   =========================== */
 .stats-manage {
     display: flex;
     justify-content: space-between;
@@ -183,6 +30,7 @@ body, html {
     flex-wrap: wrap;
 }
 
+/* --- Statistics Cards --- */
 .statistics {
     display: flex;
     gap: 20px;
@@ -201,17 +49,14 @@ body, html {
     justify-content: center;
     align-items: center;
 }
-
 .stat-card h3 {
     margin-top: 10px;
     font-weight: 600;
 }
-
 .stat-card p {
     font-size: 24px;
     font-weight: bold;
 }
-
 .see-details-btn {
     display: inline-block;
     margin-top: 8px;
@@ -224,12 +69,11 @@ body, html {
     text-decoration: none;
     transition: background-color 0.3s ease;
 }
-
 .see-details-btn:hover {
     background-color: #365ccf;
 }
 
-
+/* --- Manage Panel --- */
 .manage {
     flex: 1;
     background: white;
@@ -237,11 +81,9 @@ body, html {
     padding: 20px;
     box-shadow: 0 3px 8px rgba(0,0,0,0.1);
 }
-
-.manage h3{
+.manage h3 {
     margin-top: -1px;
 }
-
 .manage a {
     display: flex;
     align-items: center;
@@ -256,6 +98,9 @@ body, html {
     justify-content: center;
 }
 
+/* ===========================
+   3. RECENT ACTIVITY SECTION
+   =========================== */
 .recent-activity {
     background: white;
     border-radius: 15px;
@@ -263,13 +108,11 @@ body, html {
     margin-top: 30px;
     box-shadow: 0 3px 8px rgba(0,0,0,0.1);
 }
-
 .recent-activity ul {
     list-style: none;
     padding: 0;
     margin: 0;
 }
-
 .recent-activity li {
     display: flex;
     justify-content: space-between;
@@ -277,46 +120,34 @@ body, html {
     border-bottom: 1px solid #eee;
     font-size: 15px;
 }
-
 .recent-activity .row-white {
     background-color: #fff;
 }
-
 .recent-activity .row-grey {
     background-color: #f3f3f3;
     border-radius: 10px;
 }
 
-.dropdown-menu form button {
-    background: none;
-    border: none;
-    color: inherit;
-    font: inherit;
-    padding: 0;
-    cursor: pointer;
-    width: 100%;
-    text-align: left;
-}
-
-/* DASHBOARD POPUP STYLING */
+/* ===========================
+   4. POPUP & MODAL COMPONENTS
+   (Untuk Add User, Location, Shift)
+   =========================== */
 .dashboard-popup {
     display: none;
     position: fixed;
-    top: 0; 
+    top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
     background-color: rgba(0, 0, 0, 0.5);
     z-index: 9999;
 }
-
 .dashboard-popup.show {
     display: block;
 }
-
 .dashboard-popup-content {
     position: relative;
-    margin: 100px auto; /* << UBAH ANGKA INI UNTUK ATUR JARAK DARI ATAS */
+    margin: 100px auto;
     background: white;
     padding: 24px 28px;
     border-radius: 12px;
@@ -324,23 +155,22 @@ body, html {
     max-width: 420px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
-
 .dashboard-popup-content h3 {
     margin-top: 0;
     font-size: 20px;
 }
-
 .dashboard-popup-content label {
     display: block;
     margin-top: 12px;
     font-weight: 600;
 }
-
-.dashboard-popup-content label i{
-    position: absolute; font-size: 10px;
-    margin-left: 3px; font-weight: 600; color: red;
+.dashboard-popup-content label i {
+    position: absolute;
+    font-size: 10px;
+    margin-left: 3px;
+    font-weight: 600;
+    color: red;
 }
-
 .dashboard-popup-content input,
 .dashboard-popup-content textarea,
 .dashboard-popup-content select {
@@ -352,7 +182,6 @@ body, html {
     font-size: 14px;
     box-sizing: border-box;
 }
-
 .dashboard-popup-content button {
     margin-top: 16px;
     padding: 10px;
@@ -364,11 +193,9 @@ body, html {
     font-size: 15px;
     cursor: pointer;
 }
-
 .dashboard-popup-content button:hover {
     background-color: #3c63dd;
 }
-
 .close-btn {
     position: absolute;
     top: 10px;
@@ -378,134 +205,96 @@ body, html {
     cursor: pointer;
 }
 
-/* NOTIFIKASI */
-/* === Flash Toast (Top Center) === */
-.flash-toast{
-  position: fixed;
-  top: 30px;
-  left: 60%;
-  transform: translateX(-50%);
-  z-index: 99999;
-  min-width: 320px;
-  max-width: 90vw;
-  background: #ffffff;
-  color: #0f172a;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0,0,0,.15);
-  padding: 12px 44px 12px 14px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  border: 1px solid rgba(2,6,23,.08);
-  animation: flashSlideIn .25s ease-out;
-}
+/* ===========================
+   5. NOTIFICATION COMPONENTS
+   (Flash Toast & Form Errors)
+   =========================== */
 
-/* indikator kiri kecil */
-.flash-toast .flash-dot{
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-  display: inline-block;
+/* --- Flash Toast (Top Center) --- */
+.flash-toast {
+    position: fixed;
+    top: 30px;
+    left: 60%;
+    transform: translateX(-50%);
+    z-index: 99999;
+    min-width: 320px;
+    max-width: 90vw;
+    background: #ffffff;
+    color: #0f172a;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.15);
+    padding: 12px 44px 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid rgba(2,6,23,.08);
+    animation: flashSlideIn .25s ease-out;
 }
-
-/* tombol close */
-.flash-toast .flash-close{
-  position: absolute;
-  right: 10px;
-  top: 8px;
-  font-size: 20px;
-  line-height: 1;
-  border: 0;
-  background: transparent;
-  color: #64748b;
-  cursor: pointer;
+.flash-toast .flash-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    display: inline-block;
 }
-
-/* variasi warna */
+.flash-toast .flash-close {
+    position: absolute;
+    right: 10px;
+    top: 8px;
+    font-size: 20px;
+    line-height: 1;
+    border: 0;
+    background: transparent;
+    color: #64748b;
+    cursor: pointer;
+}
 .flash-toast.success { border-left: 6px solid #16a34a; }
 .flash-toast.success .flash-dot { background:#16a34a; }
-
 .flash-toast.warning { border-left: 6px solid #eab308; }
 .flash-toast.warning .flash-dot { background:#eab308; }
-
 .flash-toast.error { border-left: 6px solid #ef4444; }
 .flash-toast.error .flash-dot { background:#ef4444; }
 
-/* animasi masuk/keluar */
-@keyframes flashSlideIn{
-  from{ transform: translate(-50%, -8px); opacity:0; }
-  to  { transform: translate(-50%, 0);    opacity:1; }
+.flash-toast.hide {
+    animation: flashFadeOut .25s ease-in forwards;
 }
-.flash-toast.hide{
-  animation: flashFadeOut .25s ease-in forwards;
-}
-@keyframes flashFadeOut{
-  to{ transform: translate(-50%, -8px); opacity:0; }
-}
+@keyframes flashSlideIn { from { transform: translate(-50%, -8px); opacity:0; } to { transform: translate(-50%, 0); opacity:1; } }
+@keyframes flashFadeOut { to { transform: translate(-50%, -8px); opacity:0; } }
 
-
-/* NOTIF Message pop up*/
+/* --- Form Error Messages (in Popups) --- */
 .form-errors {
-    background-color: #f8d7da; /* Warna latar merah muda */
-    color: #721c24;            /* Warna teks merah tua */
+    background-color: #f8d7da;
+    color: #721c24;
     border: 1px solid #f5c6cb;
     padding: 1rem;
     border-radius: 5px;
     margin-bottom: 1rem;
     text-align: left;
-    display: none; /* Secara default disembunyikan */
+    display: none;
 }
-
 .form-errors.show {
-    display: block !important; /* Paksa untuk tampil */
+    display: block !important;
     animation: slideInDown 0.4s ease-out forwards;
 }
-
 .form-errors.hide {
     animation: slideOutUp 0.4s ease-in forwards;
 }
-
 .form-errors ul {
     margin: 0;
     padding-left: 20px;
     list-style-type: disc;
 }
-
 .form-errors li {
     margin-bottom: 5px;
 }
-
 .form-errors li:last-child {
     margin-bottom: 0;
 }
+@keyframes slideInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes slideOutUp { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-20px); } }
 
-
-/* Keyframe untuk animasi MUNCUL (Geser dari atas ke bawah + fade in) */
-@keyframes slideInDown {
-    from {
-        opacity: 0;
-        transform: translateY(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Keyframe untuk animasi MENGHILANG (Geser dari bawah ke atas + fade out) */
-@keyframes slideOutUp {
-    from {
-        opacity: 1;
-        transform: translateY(0);
-    }
-    to {
-        opacity: 0;
-        transform: translateY(-20px);
-    }
-}
-
-
-/* RESPONSIF */
+/* ===========================
+   6. RESPONSIVE MEDIA QUERIES
+   =========================== */
 @media (max-width: 1100px) {
     .stat-card.loc h3 {
         margin-top: 10px;
@@ -513,7 +302,6 @@ body, html {
         padding-top: 20px;
     }
 }
-
 @media (max-width: 936px) {
     .stat-card.loc h3 {
         margin-top: 10px;
@@ -521,115 +309,30 @@ body, html {
         padding-top: 0px;
     }
 }
-
 @media (max-width: 801.33px) {
     .stat-card.zz h3 {
         margin-top: 0px;
     }
-
     .stat-card.loc h3 {
         margin-top: 20px;
         font-weight: 600;
     }
 }
-
 @media (max-width: 750px) {
-    .main {
-        margin-left: 50px; /* sama dengan lebar sidebar */
-        height: calc(100vh - 20px);
-        overflow-y: auto;
-    }
-
     .stats-manage {
-        display: flex;
-        justify-content: space-between;
-        gap: 20px;
         flex-wrap: wrap;
     }
-    
     .stat-card.loc h3 {
         margin-top: 20px;
         font-weight: 600;
     }
-
-    .sidebar{
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 250px; /* sesuaikan dengan lebar sidebar */
-        height: 100vh; /* penuh layar */
-        background-color: #B6C3CF;
-        padding-top: 20px;
-        z-index: 1000;
-    }
-
-    .sidebar.collapsed {
-        width: 40px; 
-        padding-left: 10px;
-        padding-right: 5px;
-        transition: width 0.3s ease-in-out;
-    }
-
-    .sidebar.collapsed .nav a span {
-        display: none; 
-    }
-
-    .sidebar.collapsed .logo {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 10px;
-        padding: 10px 0;
-    }
-
-    .sidebar.collapsed .logo img {
-        max-height: 10px; 
-        width: auto;
-    }
-
-    .sidebar .nav a {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-        gap: 10px;
-        text-decoration: none;
-        border-radius: 5px;
-        margin-bottom: 10px;
-        font-weight: 500;
-        color: black;
-    }
-
-    .sidebar .nav a i {
-        font-size: 18px;
-    }
-
-    .sidebar .nav a.active,
-    .sidebar .nav a:hover {
-        background-color: #384458;
-        color: white;
-    }
-
-    .search-box {
-        width: 200px;
-    }
-
-    .profile-section {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        position: relative;
-        padding-left: 20px;
-    }
 }
-
 @media (max-width: 720px) {
     .stat-card.loc h3 {
         margin-top: 0px;
         font-weight: 600;
     }
 }
-
 @media (max-width: 580px) {
     .stat-card.loc h3 {
         margin-top: 20px;

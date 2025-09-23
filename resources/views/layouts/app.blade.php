@@ -4,12 +4,7 @@
     <meta charset="UTF-8" name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'PT AICA INDRIA')</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="{{ asset('css/admin/dashboard.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/satpam/dashboard.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/admin/app.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/satpam/app.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/kepala/app.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/topbar-notif.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     @stack('styles')
 </head>
@@ -49,7 +44,7 @@
         <main class="main">
             <!-- Topbar -->
             <header class="topbar">
-                    <div class="search-box">
+                    <div id="searchbox" class="search-box">
                         <i class="bi bi-search search-icon"></i>
                         <input type="text" id="searchInput" placeholder="Search" oninput="filterMenu()">
                         <ul id="searchDropdown" class="search-dropdown"></ul>
@@ -82,7 +77,7 @@
         </main>
     </div>
 @elseif ($role === 'Kepala Satpam')
-    <div class="container">
+    <div class="container1">
         <!-- Sidebar -->
         <aside class="sidebar1 collapsed">
             
@@ -110,7 +105,7 @@
         <main class="main">
             <!-- Topbar -->
             <header class="topbar1">
-                <div class="search-box1">
+                <div id="searchbox" class="search-box">
                     <i class="bi bi-search search-icon"></i>
                     <input type="text" id="searchInput" placeholder="Search" oninput="filterMenu()">
                     <ul id="searchDropdown" class="search-dropdown"></ul>
@@ -169,7 +164,7 @@
         </main>
     </div>
 @elseif ($role === 'Satpam')
-    <div class="container">
+    <div class="container1">
         <!-- Sidebar -->
         <aside class="sidebar1 collapsed">
             
@@ -194,7 +189,7 @@
         <main class="main">
             <!-- Topbar -->
             <header class="topbar1">
-                <div class="search-box2">
+                <div id="searchbox" class="search-box">
                     <i class="bi bi-search search-icon"></i>
                     <input type="text" id="searchInput" placeholder="Search" oninput="filterMenu()">
                     <ul id="searchDropdown" class="search-dropdown"></ul>
@@ -302,163 +297,163 @@
 
         // Close dropdown when clicking outside
         document.addEventListener('click', function(e) {
-            const searchBox = document.querySelector('.search-box');
+            const searchBox = document.getElementById("searchbox");
             if (!searchBox.contains(e.target)) {
                 document.getElementById("searchDropdown").style.display = "none";
             }
         });
     </script>
 @elseif ($role === 'Kepala Satpam')
-<script>
-    function toggleDropdown() {
-        document.getElementById('dropdownMenu').classList.toggle('show');
-    }
-
-    const menuItems = [
-        { name: "Dashboard", url: "/dashboard-kepala" },
-        { name: "Journal Submission", url: "/journal-submission" },
-        { name: "Log History", url: "/log-history" },
-        { name: "Guard Data", url: "/log-history" }
-    ];
-
-    function filterMenu() {
-        const input = document.getElementById("searchInput");
-        const filter = input.value.toLowerCase();
-        const dropdown = document.getElementById("searchDropdown");
-
-        dropdown.innerHTML = ""; // bersihkan isi dulu
-
-        if (filter.trim() === "") {
-            dropdown.style.display = "none"; // kosong, sembunyikan
-            return;
+    <script>
+        function toggleDropdown() {
+            document.getElementById('dropdownMenu').classList.toggle('show');
         }
 
-        const filteredItems = menuItems.filter(item =>
-            item.name.toLowerCase().includes(filter)
-        );
+        const menuItems = [
+            { name: "Dashboard", url: "/dashboard-kepala" },
+            { name: "Journal Submission", url: "/journal-submission" },
+            { name: "Log History", url: "/log-history" },
+            { name: "Guard Data", url: "/guard-data" }
+        ];
 
-        if (filteredItems.length === 0) {
-            dropdown.style.display = "none";
-            return;
+        function filterMenu() {
+            const input = document.getElementById("searchInput");
+            const filter = input.value.toLowerCase();
+            const dropdown = document.getElementById("searchDropdown");
+
+            dropdown.innerHTML = ""; // bersihkan isi dulu
+
+            if (filter.trim() === "") {
+                dropdown.style.display = "none"; // kosong, sembunyikan
+                return;
+            }
+
+            const filteredItems = menuItems.filter(item =>
+                item.name.toLowerCase().includes(filter)
+            );
+
+            if (filteredItems.length === 0) {
+                dropdown.style.display = "none";
+                return;
+            }
+
+            filteredItems.forEach(item => {
+                const li = document.createElement("li");
+                li.textContent = item.name;
+                li.onclick = () => window.location.href = item.url;
+                dropdown.appendChild(li);
+            });
+
+            dropdown.style.display = "block"; // hanya tampil kalau ada hasil
         }
 
-        filteredItems.forEach(item => {
-            const li = document.createElement("li");
-            li.textContent = item.name;
-            li.onclick = () => window.location.href = item.url;
-            dropdown.appendChild(li);
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            const searchBox = document.getElementById("searchbox");
+            if (!searchBox.contains(e.target)) {
+                document.getElementById("searchDropdown").style.display = "none";
+            }
         });
 
-        dropdown.style.display = "block"; // hanya tampil kalau ada hasil
-    }
+        // notif reminders
+        document.addEventListener('DOMContentLoaded', () => {
+            const btn = document.getElementById('notifBtn');
+            const panel = document.getElementById('notifPanel');
 
-    // Close dropdown when clicking outside
-    document.addEventListener('click', function(e) {
-        const searchBox = document.querySelector('.search-box1');
-        if (!searchBox.contains(e.target)) {
-            document.getElementById("searchDropdown").style.display = "none";
-        }
-    });
+            btn?.addEventListener('click', () => {
+                panel?.classList.toggle('open');
+            });
 
-    // notif reminders
-    document.addEventListener('DOMContentLoaded', () => {
-        const btn = document.getElementById('notifBtn');
-        const panel = document.getElementById('notifPanel');
+            document.addEventListener('click', (e) => {
+                if (!panel) return;
+                if (panel.contains(e.target) || btn.contains(e.target)) return;
+                panel.classList.remove('open');
+            });
 
-        btn?.addEventListener('click', () => {
-            panel?.classList.toggle('open');
+            // Navigate when a reminder has data-url
+            panel?.addEventListener('click', (e) => {
+                const item = e.target.closest('.notif-item');
+                if (!item) return;
+                const url = item.dataset.url;
+                if (url) window.location.href = url;
+            });
         });
-
-        document.addEventListener('click', (e) => {
-            if (!panel) return;
-            if (panel.contains(e.target) || btn.contains(e.target)) return;
-            panel.classList.remove('open');
-        });
-
-        // Navigate when a reminder has data-url
-        panel?.addEventListener('click', (e) => {
-            const item = e.target.closest('.notif-item');
-            if (!item) return;
-            const url = item.dataset.url;
-            if (url) window.location.href = url;
-        });
-    });
-</script>
+    </script>
 @elseif ($role === 'Satpam')
-<script>
-    function toggleDropdown() {
-        document.getElementById('dropdownMenu').classList.toggle('show');
-    }
-
-    const menuItems = [
-        { name: "Dashboard", url: "/dashboard-satpam" },
-        { name: "Journal Submission", url: "/journal-submission" },
-        { name: "Log History", url: "/log-history" }
-    ];
-
-    function filterMenu() {
-        const input = document.getElementById("searchInput");
-        const filter = input.value.toLowerCase();
-        const dropdown = document.getElementById("searchDropdown");
-
-        dropdown.innerHTML = ""; // bersihkan isi dulu
-
-        if (filter.trim() === "") {
-            dropdown.style.display = "none"; // kosong, sembunyikan
-            return;
+    <script>
+        function toggleDropdown() {
+            document.getElementById('dropdownMenu').classList.toggle('show');
         }
 
-        const filteredItems = menuItems.filter(item =>
-            item.name.toLowerCase().includes(filter)
-        );
+        const menuItems = [
+            { name: "Dashboard", url: "/dashboard-satpam" },
+            { name: "Journal Submission", url: "/journal-submission" },
+            { name: "Log History", url: "/log-history" }
+        ];
 
-        if (filteredItems.length === 0) {
-            dropdown.style.display = "none";
-            return;
+        function filterMenu() {
+            const input = document.getElementById("searchInput");
+            const filter = input.value.toLowerCase();
+            const dropdown = document.getElementById("searchDropdown");
+
+            dropdown.innerHTML = ""; // bersihkan isi dulu
+
+            if (filter.trim() === "") {
+                dropdown.style.display = "none"; // kosong, sembunyikan
+                return;
+            }
+
+            const filteredItems = menuItems.filter(item =>
+                item.name.toLowerCase().includes(filter)
+            );
+
+            if (filteredItems.length === 0) {
+                dropdown.style.display = "none";
+                return;
+            }
+
+            filteredItems.forEach(item => {
+                const li = document.createElement("li");
+                li.textContent = item.name;
+                li.onclick = () => window.location.href = item.url;
+                dropdown.appendChild(li);
+            });
+
+            dropdown.style.display = "block"; // hanya tampil kalau ada hasil
         }
 
-        filteredItems.forEach(item => {
-            const li = document.createElement("li");
-            li.textContent = item.name;
-            li.onclick = () => window.location.href = item.url;
-            dropdown.appendChild(li);
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            const searchBox = document.getElementById("searchbox");
+            if (!searchBox.contains(e.target)) {
+                document.getElementById("searchDropdown").style.display = "none";
+            }
         });
 
-        dropdown.style.display = "block"; // hanya tampil kalau ada hasil
-    }
+        // notif reminders
+        document.addEventListener('DOMContentLoaded', () => {
+            const btn = document.getElementById('notifBtn');
+            const panel = document.getElementById('notifPanel');
 
-    // Close dropdown when clicking outside
-    document.addEventListener('click', function(e) {
-        const searchBox = document.querySelector('.search-box2');
-        if (!searchBox.contains(e.target)) {
-            document.getElementById("searchDropdown").style.display = "none";
-        }
-    });
+            btn?.addEventListener('click', () => {
+                panel?.classList.toggle('open');
+            });
 
-    // notif reminders
-    document.addEventListener('DOMContentLoaded', () => {
-        const btn = document.getElementById('notifBtn');
-        const panel = document.getElementById('notifPanel');
+            document.addEventListener('click', (e) => {
+                if (!panel) return;
+                if (panel.contains(e.target) || btn.contains(e.target)) return;
+                panel.classList.remove('open');
+            });
 
-        btn?.addEventListener('click', () => {
-            panel?.classList.toggle('open');
+            // Navigate when a reminder has data-url
+            panel?.addEventListener('click', (e) => {
+                const item = e.target.closest('.notif-item');
+                if (!item) return;
+                const url = item.dataset.url;
+                if (url) window.location.href = url;
+            });
         });
-
-        document.addEventListener('click', (e) => {
-            if (!panel) return;
-            if (panel.contains(e.target) || btn.contains(e.target)) return;
-            panel.classList.remove('open');
-        });
-
-        // Navigate when a reminder has data-url
-        panel?.addEventListener('click', (e) => {
-            const item = e.target.closest('.notif-item');
-            if (!item) return;
-            const url = item.dataset.url;
-            if (url) window.location.href = url;
-        });
-    });
-</script>
+    </script>
 @endif
 </body>
 </html>

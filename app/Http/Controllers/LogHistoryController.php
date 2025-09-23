@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\View;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use App\Models\JurnalSatpam;
 use App\Models\Lokasi;
@@ -12,10 +13,12 @@ use App\Models\User;
 use App\Models\Jadwal;
 use Carbon\Carbon;
 
+
 class LogHistoryController extends Controller
 {
     public function index(Request $request)
     {
+        $user = Auth::user();
         $lokasis = Lokasi::orderBy('is_active', 'desc')->orderBy('id')->get();
         $shifts  = Shift::orderBy('is_active', 'desc')->orderBy('id')->get();
 
@@ -52,7 +55,12 @@ class LogHistoryController extends Controller
 
         $jurnals = $query->orderByDesc('id')->get(); // Collection -> forelse @empty bisa
 
-        return view('admin.fitur-2', compact('jurnals','lokasis','shifts'));
+        if ($user->role !== 'Satpam') {
+            return view('KepalaSatpam.log-history', compact('jurnals','lokasis','shifts'));
+        }else{
+            return view('Satpam.log-history', compact('jurnals','lokasis','shifts'));
+        }
+        
     }
 
     public function updateStatus(Request $request, $id)
@@ -98,7 +106,10 @@ class LogHistoryController extends Controller
 
         // Nama file
         $formattedDate = Carbon::parse($jurnal->tanggal)->format('d-m-Y');
-        $filename = 'journal-' . $formattedDate . '.pdf';
+        $namaLokasi = str_replace(' ', '_', $jurnal->lokasi->nama_lokasi ?? 'NoLocation');
+        $namaShift  = str_replace(' ', '_', $jurnal->shift->nama_shift ?? 'NoShift');
+
+        $filename = "Journal_{$formattedDate}_{$namaLokasi}_{$namaShift}.pdf";
 
         // Render PDF
         $pdf = Pdf::loadView('pdf.jurnal-pdf', [

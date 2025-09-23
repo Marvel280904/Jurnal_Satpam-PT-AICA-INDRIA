@@ -3,7 +3,7 @@
 @section('title', 'My Profile')
 
 @push('styles')
-<link rel="stylesheet" href="{{ asset('css/profile.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/profile.css') }}">
 @endpush
 
 @section('content')
@@ -46,7 +46,7 @@
                 </div>
                 <div class="form-group">
                     <label>Password</label>
-                    <input type="password" name="password" placeholder="New Password" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+                    <input class="pass" type="password" name="password" placeholder="New Password" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
                 </div>
                 <button type="submit" class="save-btn">Save</button>
             </form>
