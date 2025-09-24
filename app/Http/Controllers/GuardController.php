@@ -91,6 +91,7 @@ class GuardController extends Controller
         $jadwalBatch = [];
         $now = now();
         $loggedInUserId = auth()->id();
+        $isupdated = 0;
 
         // 3. Looping untuk setiap hari dari start_date hingga end_date
         for ($date = $start->copy(); $date->lte($end); $date->addDay()) {
@@ -121,6 +122,22 @@ class GuardController extends Controller
                                 'created_by' => $loggedInUserId,
                                 'updated_by' => null
                             ];
+                        } else {
+                            // Jika lokasiId dan shiftId null, artinya user tersebut tidak diupdate, abaikan update
+                            if ($lokasiId === "null" || $shiftId === "null") {
+                                continue;
+                            }
+                            // Update data jadwal dengan user_id dan tanggal di range [$start, $end]
+                            Jadwal::where('user_id', $userId)
+                                ->whereBetween('tanggal', [$start->format('Y-m-d'), $end->format('Y-m-d')])
+                                ->update([
+                                    'lokasi_id'  => $lokasiId,
+                                    'shift_id'   => $shiftId,
+                                    'status'     => 'On Duty',
+                                    'updated_at' => $now,
+                                    'updated_by' => $loggedInUserId
+                                ]);
+                            $isupdated++;
                         }
                     }
                 }
@@ -149,7 +166,9 @@ class GuardController extends Controller
 
         // 4. Jika setelah semua pengecekan tidak ada jadwal baru untuk ditambahkan, beri pesan.
         if (empty($jadwalBatch)) {
-            return response()->json(['success' => false, 'message' => 'Tidak ada jadwal baru untuk ditambahkan. Semua satpam pada tanggal tersebut sudah memiliki jadwal.'], 422);
+            if ($isupdated == 0){
+                return response()->json(['success' => false, 'message' => 'Tidak ada jadwal baru untuk ditambahkan. Semua satpam pada tanggal tersebut sudah memiliki jadwal.'], 422);
+            }
         }
 
         Jadwal::insert($jadwalBatch);

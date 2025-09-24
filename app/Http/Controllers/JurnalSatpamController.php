@@ -44,44 +44,12 @@ class JurnalSatpamController extends Controller
             }
         }
 
-        // 3. Ambil semua shift aktif dan urutkan
-        $activeShifts = Shift::where('is_active', 1)->orderBy('mulai_shift')->get();
-
-        // Variabel untuk menyimpan tanggung jawab user
-        $count = 0;
-        $UserResponsibleData = [];
-
-        // 4. Loop semua latest jurnal per lokasi
-        foreach ($allLatestJurnal as $latestJurnal) {
-            // Hitung next shift dan tanggalnya
-            $latestShiftIndex = $activeShifts->search(fn($shift) => $shift->id == $latestJurnal->shift_id);
-            if ($latestShiftIndex === false) {
-                continue; // skip jika shift tidak ditemukan
-            }
-
-            $nextShiftIndex = ($latestShiftIndex + 1) % $activeShifts->count();
-            $nextShift = $activeShifts[$nextShiftIndex];
-            $nextDate = \Carbon\Carbon::parse($latestJurnal->tanggal);
-            if ($nextShiftIndex == 0) {
-                $nextDate->addDay();
-            }
-
-            // 5. Ambil semua user yang bertanggung jawab di jadwal berikutnya di lokasi ini
-            $allResponsibleUsers = Jadwal::whereDate('tanggal', $latestJurnal->tanggal)
-                ->where('lokasi_id', $latestJurnal->lokasi_id)
-                ->where('shift_id', $nextShift->id)
-                ->get();
-
-            // 6. Cek apakah user login bertanggung jawab di jadwal ini
-            foreach ($allResponsibleUsers as $jadwal) {
-                if ($jadwal->user_id == $user->id) {
-                    $count++;
-                    $UserResponsibleData[] = $jadwal; // simpan data terakhir yang ditemukan
-                }
-            }
+        // 3. Kalau belum ada data jurnal, abaikan pengecekan
+        if (empty($allLatestJurnal)) {
+            return view('Satpam.journal-sub', $viewData);
         }
 
-        // 7. Ambil jadwal user hari ini
+        // 8. Ambil jadwal user hari ini
         $today = now()->today();
         $todaysJadwal = Jadwal::where('user_id', $user->id)
             ->whereDate('tanggal', $today)
@@ -107,6 +75,56 @@ class JurnalSatpamController extends Controller
         $currentUserLokasiId = $todaysJadwal->lokasi_id;
         $currentUserLokasi = Lokasi::find($currentUserLokasiId);
 
+        $latestLokasiIds = collect($allLatestJurnal)->pluck('lokasi_id')->unique()->toArray();
+        // Cek apakah lokasi user ada di latest jurnal
+        if (!in_array($currentUserLokasiId, $latestLokasiIds)) {
+            // Jika lokasi user tidak ada di jurnal terbaru, langsung return view tanpa lanjut pengecekan
+            return view('Satpam.journal-sub', $viewData);
+        }
+
+
+        // 4. Ambil semua shift aktif dan urutkan
+        $activeShifts = Shift::where('is_active', 1)->orderBy('mulai_shift')->get();
+
+        // Variabel untuk menyimpan tanggung jawab user
+        $count = 0;
+        $UserResponsibleData = [];
+
+        // 5. Loop semua latest jurnal per lokasi
+        foreach ($allLatestJurnal as $latestJurnal) {
+            // Hitung next shift dan tanggalnya
+            $latestShiftIndex = $activeShifts->search(fn($shift) => $shift->id == $latestJurnal->shift_id);
+            if ($latestShiftIndex === false) {
+                continue; // skip jika shift tidak ditemukan
+            }
+
+            $nextShiftIndex = ($latestShiftIndex + 1) % $activeShifts->count();
+            $nextShift = $activeShifts[$nextShiftIndex];
+            $nextDate = \Carbon\Carbon::parse($latestJurnal->tanggal);
+            if ($nextShiftIndex == 0) {
+                $nextDate->addDay();
+            }
+
+            // 6. Ambil semua user yang bertanggung jawab di jadwal berikutnya di lokasi ini
+            $allResponsibleUsers = Jadwal::whereDate('tanggal', $latestJurnal->tanggal)
+                ->where('lokasi_id', $latestJurnal->lokasi_id)
+                ->where('shift_id', $nextShift->id)
+                ->get();
+
+            // 7. Cek apakah user login bertanggung jawab di jadwal ini
+            foreach ($allResponsibleUsers as $jadwal) {
+                if ($jadwal->user_id == $user->id) {
+                    $count++;
+                    $UserResponsibleData[] = $jadwal; // simpan data terakhir yang ditemukan
+                }
+            }
+        }
+
+        
+
+        
+        
+
         // Cari latest jurnal yang lokasi_id-nya sama dengan lokasi user hari ini
         $latestJurnalForCurrentLokasi = null;
         foreach ($allLatestJurnal as $jurnal) {
@@ -116,7 +134,7 @@ class JurnalSatpamController extends Controller
             }
         }
         //dd($count);
-        // 8. Logika berdasarkan jumlah tanggung jawab user
+        // 9. Logika berdasarkan jumlah tanggung jawab user
         if ($count == 0) {
             // Tidak ada tanggung jawab, munculkan notifikasi berdasarkan latest jurnal lokasi user hari ini
             if ($latestJurnalForCurrentLokasi) {

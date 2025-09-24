@@ -95,7 +95,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($jurnalHistory as $index => $jurnal)
+                    @forelse($jurnalHistory as $index => $jurnal)
                         <tr class="{{ $index % 2 == 0 ? 'row-white' : 'row-grey' }}">
                             <td>{{ \Carbon\Carbon::parse($jurnal->tanggal)->format('d F Y') }}</td>
                             <td>{{ $jurnal->lokasi->nama_lokasi }}</td>
@@ -107,7 +107,9 @@
                                 </span>
                             </td>
                         </tr>
-                    @endforeach
+                    @empty
+                        <tr><td colspan="6">Tidak ada jurnal.</td></tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
