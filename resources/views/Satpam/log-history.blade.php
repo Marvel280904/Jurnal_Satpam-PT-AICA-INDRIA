@@ -254,7 +254,7 @@
                     if (jurnal.uploads && jurnal.uploads.length > 0) {
                         html += `<tr><td><strong>Lampiran</strong></td><td>:</td><td>`;
                         jurnal.uploads.forEach(file => {
-                            html += `<a href="/storage/${file.file_path}" target="_blank" style="margin-right:5px;">
+                            html += `<a href="{{ asset('${file.file_path}') }}" target="_blank" style="margin-right:5px;">
                                         <i class="bi bi-file-earmark-arrow-down-fill" style="color:red;font-size:20px;"></i>
                                     </a>`;
                         });
