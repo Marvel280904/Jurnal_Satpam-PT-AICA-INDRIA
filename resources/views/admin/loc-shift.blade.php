@@ -36,10 +36,12 @@
                     <div class="location-cards">
                         @foreach($locations as $location)
                                 <div class="location-card {{ !$location->is_active ? 'inactive' : '' }}">
-                                <img src="{{ $location->foto ? asset($location->foto) : asset('images/default.jpg') }}" alt="Lokasi">
+                                <img src="{{ $location->foto ? asset($location->foto) : asset('images/defloc.png') }}" alt="Lokasi">
                                 <div class="location-info">
-                                    <h3><i class="bi bi-geo-alt-fill icon-loc"></i> {{ $location->nama_lokasi }}</h3>
-                                    <p>{{ $location->alamat_lokasi }}</p>
+                                    <div class="location-card-detail">
+                                        <h3><i class="bi bi-geo-alt-fill icon-loc"></i> {{ $location->nama_lokasi }}</h3>
+                                        <p>{{ $location->alamat_lokasi }}</p>
+                                    </div>
 
                                     <!-- Button Activate / Inactivate -->
                                     <div class="location-card-actions">
@@ -127,8 +129,8 @@
                 <label>Alamat Lokasi <i class="bi bi-asterisk"></i> </label>
                 <textarea name="alamat_lokasi" required placeholder="Wajib diisi!"></textarea>
 
-                <label>Upload Foto <i class="bi bi-asterisk"></i> </label>
-                <input type="file" name="foto" required>
+                <label>Upload Foto</label>
+                <input type="file" name="foto">
 
                 <button type="submit">Submit</button>
             </form>
@@ -153,7 +155,7 @@
                 <label>Alamat Lokasi <i class="bi bi-asterisk"></i> </label>
                 <textarea name="alamat_lokasi" id="editAlamatLokasi" required placeholder="Wajib diisi!"></textarea>
 
-                <label>Upload Foto <i class="bi bi-asterisk"></i> </label>
+                <label>Upload Foto</label>
                 <input type="file" name="foto" id="editFotoLokasi" accept="image/*">
                 <!-- <small id="currentFotoText"></small> -->
                 <img id="editFotoPreview" src="" alt="Foto lokasi" style="display:none;max-width:30%;border-radius:8px;margin-bottom:8px;padding-top:5px;"/>

@@ -25,7 +25,7 @@ class LocationShiftController extends Controller
         $rules = [
             'nama_lokasi'   => 'required|string|max:100|unique:lokasis,nama_lokasi',
             'alamat_lokasi' => 'required|string',
-            'foto'          => 'required|image|mimes:jpg,jpeg,png|max:2048',
+            'foto'          => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ];
 
         $messages = [
