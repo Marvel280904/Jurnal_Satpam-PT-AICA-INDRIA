@@ -58,8 +58,10 @@
             </div>
 
             <div class="form-group">
-                <label>Cuaca <i class="bi bi-asterisk"></i> </label>
-                <input type="text" name="cuaca" placeholder="Wajib diisi" required>
+                <label>Laporan Kegiatan <i class="bi bi-asterisk"></i> </label>
+                <textarea placeholder="1. Kegiatan 1 (Jam) 
+2. Kegiatan 2 (Jam)
+3. DST..."></textarea>
             </div>
 
             @php
@@ -67,12 +69,6 @@
                     'kejadian_temuan' => 'Laporan Kejadian/Temuan',
                     'lembur' => 'Lembur',
                     'proyek_vendor' => 'Proyek/Vendor',
-                    'paket_dokumen' => 'Paket/Dokumen',
-                    'tamu_belum_keluar' => 'Tamu Belum Keluar',
-                    'karyawan_dinas_keluar' => 'Karyawan Dinas Luar',
-                    'barang_keluar' => 'Barang Inventaris Keluar',
-                    'kendaraan_dinas_keluar' => 'Kendaraan Dinas Luar',
-                    'lampu_mati' => 'Lampu/Penerangan Mati'
                 ];
             @endphp
 
@@ -87,9 +83,27 @@
                 </div>
             @endforeach
 
+            @php
+                $items = [
+                    'barang_keluar' => 'Barang Inventaris',
+                    'kendaraan_dinas_keluar' => 'Kendaraan Dinas',
+                ];
+            @endphp
+
+            @foreach($items as $key => $label)
+                <div class="form-group">
+                    <label>{{ $label }} <i class="bi bi-asterisk"></i> </label>
+                    <div class="radio-group">
+                        <label><input type="radio" name="is_{{ $key }}" value="1"> Masuk</label>
+                        <label><input type="radio" name="is_{{ $key }}" value="0"> Keluar</label>
+                    </div>
+                    <textarea name="{{ $key }}" placeholder="Keterangan (wajib jika Masuk/Keluar)"></textarea>
+                </div>
+            @endforeach
+
             <div class="form-group">
                 <label>Informasi Tambahan <i class="bi bi-asterisk"></i> </label>
-                <textarea name="info_tambahan" placeholder="Wajib diisi" required></textarea>
+                <textarea name="info_tambahan" placeholder="Tidak wajib diisi"></textarea>
             </div>
 
             <div class="form-group">
