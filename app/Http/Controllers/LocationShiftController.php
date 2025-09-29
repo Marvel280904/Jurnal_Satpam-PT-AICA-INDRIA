@@ -17,7 +17,7 @@ class LocationShiftController extends Controller
         $locations = Lokasi::all(); 
         $shifts = Shift::all();     
 
-        return view('Admin.loc-shift', compact('locations', 'shifts'));
+        return view('admin.loc-shift', compact('locations', 'shifts'));
     }
 
     public function storeLocation(Request $request)

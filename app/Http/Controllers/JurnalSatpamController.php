@@ -25,7 +25,7 @@ class JurnalSatpamController extends Controller
         ];
 
         if ($user->role !== 'Satpam') {
-            return view('KepalaSatpam.journal-sub', $viewData);
+            return view('kepalasatpam.journal-sub', $viewData);
         }
 
         // 1. Ambil semua lokasi aktif
@@ -44,9 +44,10 @@ class JurnalSatpamController extends Controller
             }
         }
 
+        //dd($allLatestJurnal);
         // 3. Kalau belum ada data jurnal, abaikan pengecekan
         if (empty($allLatestJurnal)) {
-            return view('Satpam.journal-sub', $viewData);
+            return view('satpam.journal-sub', $viewData);
         }
 
         // 8. Ambil jadwal user hari ini
@@ -54,34 +55,6 @@ class JurnalSatpamController extends Controller
         $todaysJadwal = Jadwal::where('user_id', $user->id)
             ->whereDate('tanggal', $today)
             ->first();
-
-        if (!$todaysJadwal) {
-            if ($count == 0) {
-                session()->flash('flash_notification', [
-                    'type' => 'warning',
-                    'message' => 'Anda tidak memiliki jadwal kerja hari ini!'
-                ]);
-                return view('Satpam.journal-sub', $viewData);
-            } else{
-                $latestResponsibility = collect($UserResponsibleData)
-                    ->sortByDesc('tanggal') // urut menurun berdasarkan tanggal
-                    ->first();
-                $viewData['prefilledJadwal'] = $latestResponsibility ?: null;
-                return view('Satpam.journal-sub', $viewData);
-                
-            }
-        }
-
-        $currentUserLokasiId = $todaysJadwal->lokasi_id;
-        $currentUserLokasi = Lokasi::find($currentUserLokasiId);
-
-        $latestLokasiIds = collect($allLatestJurnal)->pluck('lokasi_id')->unique()->toArray();
-        // Cek apakah lokasi user ada di latest jurnal
-        if (!in_array($currentUserLokasiId, $latestLokasiIds)) {
-            // Jika lokasi user tidak ada di jurnal terbaru, langsung return view tanpa lanjut pengecekan
-            return view('Satpam.journal-sub', $viewData);
-        }
-
 
         // 4. Ambil semua shift aktif dan urutkan
         $activeShifts = Shift::where('is_active', 1)->orderBy('mulai_shift')->get();
@@ -120,10 +93,32 @@ class JurnalSatpamController extends Controller
             }
         }
 
-        
+        if (!$todaysJadwal) {
+            if ($count == 0) {
+                session()->flash('flash_notification', [
+                    'type' => 'warning',
+                    'message' => 'Anda tidak memiliki jadwal kerja hari ini!'
+                ]);
+                return view('satpam.journal-sub', $viewData);
+            } else{
+                $latestResponsibility = collect($UserResponsibleData)
+                    ->sortByDesc('tanggal') // urut menurun berdasarkan tanggal
+                    ->first();
+                $viewData['prefilledJadwal'] = $latestResponsibility ?: null;
+                return view('satpam.journal-sub', $viewData);
+                
+            }
+        }
 
+        $currentUserLokasiId = $todaysJadwal->lokasi_id;
+        $currentUserLokasi = Lokasi::find($currentUserLokasiId);
         
-        
+        $latestLokasiIds = collect($allLatestJurnal)->pluck('lokasi_id')->unique()->toArray();
+        // Cek apakah lokasi user ada di latest jurnal
+        if (!in_array($currentUserLokasiId, $latestLokasiIds)) {
+            // Jika lokasi user tidak ada di jurnal terbaru, langsung return view tanpa lanjut pengecekan
+            return view('satpam.journal-sub', $viewData);
+        }
 
         // Cari latest jurnal yang lokasi_id-nya sama dengan lokasi user hari ini
         $latestJurnalForCurrentLokasi = null;
@@ -170,11 +165,11 @@ class JurnalSatpamController extends Controller
                 ]);
             }
 
-            return view('Satpam.journal-sub', $viewData);
+            return view('satpam.journal-sub', $viewData);
         } elseif ($count == 1) {
             // Hanya 1 tanggung jawab, isi prefilledJadwal dengan data tersebut
             $viewData['prefilledJadwal'] = $UserResponsibleData[0];
-            return view('Satpam.journal-sub', $viewData);
+            return view('satpam.journal-sub', $viewData);
         } else {
             // Lebih dari 1 tanggung jawab
             // Cari data tanggung jawab user yang lokasi_id-nya sama dengan lokasi hari ini
@@ -202,7 +197,7 @@ class JurnalSatpamController extends Controller
                 $viewData['prefilledJadwal'] = $UserResponsibleData;
             }
 
-            return view('Satpam.journal-sub', $viewData);
+            return view('satpam.journal-sub', $viewData);
         }
     }
 

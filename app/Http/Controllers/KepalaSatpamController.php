@@ -54,7 +54,7 @@ class KepalaSatpamController extends Controller
             ->take(5)
             ->get();
 
-        return view('KepalaSatpam.dashboard', compact(
+        return view('kepalasatpam.dashboard', compact(
             'jadwals',
             'jurnalToday',
             'jurnalHistory',

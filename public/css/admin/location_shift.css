@@ -84,6 +84,14 @@
     color: red;
 }
 
+.location-card-actions {
+    display: flex;
+    justify-content: flex-end; 
+    gap: 10px; 
+  
+    padding: 0 5px 5px 5px; /* Sedikit padding agar tidak terlalu mepet ke tepi */
+}
+
 /* ===========================
    3. SHIFT SECTION
    =========================== */
@@ -164,11 +172,6 @@
 .edit-btn i {
     font-size: 16px;
 }
-.btn-loc {
-    position: absolute;
-    bottom: 8px;
-    right: 18%;
-}
 
 .edit-btn-shift {
     background-color: #4f6ef7;
@@ -192,9 +195,6 @@
 }
 
 .status-btn {
-    position: absolute;
-    bottom: 8px;
-    right: 16px;
     border-radius: 8px;
     padding: 8px 14px;
     font-weight: 500;
@@ -309,7 +309,6 @@
 /* ===========================
    6. NOTIFICATION COMPONENTS
    =========================== */
-
 /* --- Flash Toast (Top Center) --- */
 .flash-toast {
     position: fixed;

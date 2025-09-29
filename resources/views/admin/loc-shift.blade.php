@@ -42,25 +42,25 @@
                                     <p>{{ $location->alamat_lokasi }}</p>
 
                                     <!-- Button Activate / Inactivate -->
-                                    <form action="{{ route('location.toggleStatus', $location->id) }}" method="POST" class="toggle-status-form" style="margin-top: 10px;">
-                                        @csrf
-                                        <button type="submit" class="status-btn">
-                                            {{ $location->is_active ? 'Inactivate' : 'Activate' }}
+                                    <div class="location-card-actions">
+                                        <button type="button"
+                                            class="edit-btn" {{-- Hapus kelas .btn-loc --}}
+                                            data-id="{{ $location->id }}"
+                                            data-nama="{{ e($location->nama_lokasi) }}"
+                                            data-alamat="{{ e($location->alamat_lokasi) }}"
+                                            data-foto="{{ $location->foto ? asset($location->foto) : '' }}"
+                                            onclick="openEditLocationPopup(this)"
+                                            {{ !$location->is_active ? 'disabled' : '' }}>
+                                            <i class="bi bi-pencil-square"></i> Edit
                                         </button>
-                                    </form>
 
-                                    <button type="button"
-                                        class="edit-btn btn-loc"
-                                        data-id="{{ $location->id }}"
-                                        data-nama="{{ e($location->nama_lokasi) }}"
-                                        data-alamat="{{ e($location->alamat_lokasi) }}"
-                                        data-foto="{{ $location->foto ? asset($location->foto) : '' }}"
-                                        onclick="openEditLocationPopup(this)"
-                                        onclick="openEditLocationPopup(this)"
-                                        {{ !$location->is_active ? 'disabled' : '' }}>
-
-                                        <i class="bi bi-pencil-square"></i> Edit
-                                    </button>
+                                        <form action="{{ route('location.toggleStatus', $location->id) }}" method="POST" class="toggle-status-form">
+                                            @csrf
+                                            <button type="submit" class="status-btn">
+                                                {{ $location->is_active ? 'Inactivate' : 'Activate' }}
+                                            </button>
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
                         @endforeach

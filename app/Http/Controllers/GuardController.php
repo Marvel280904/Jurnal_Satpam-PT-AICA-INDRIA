@@ -43,7 +43,7 @@ class GuardController extends Controller
 
         $jadwals = $query->orderByDesc('status')->get();
 
-        return view('KepalaSatpam.guard-data', compact('jadwals', 'lokasis', 'satpams', 'shifts'));
+        return view('kepalasatpam.guard-data', compact('jadwals', 'lokasis', 'satpams', 'shifts'));
     }
 
     public function storeJadwal(Request $request)

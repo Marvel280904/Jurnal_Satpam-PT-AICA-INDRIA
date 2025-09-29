@@ -19,7 +19,7 @@ class UserController extends Controller
             ->orderBy('nama')
             ->get();
 
-        return view('Admin.user-role', compact('users'));
+        return view('admin.user-role', compact('users'));
     }
 
     // Store user baru

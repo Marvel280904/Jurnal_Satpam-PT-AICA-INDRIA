@@ -56,9 +56,9 @@ class LogHistoryController extends Controller
         $jurnals = $query->orderByDesc('id')->get(); // Collection -> forelse @empty bisa
 
         if ($user->role !== 'Satpam') {
-            return view('KepalaSatpam.log-history', compact('jurnals','lokasis','shifts'));
+            return view('kepalasatpam.log-history', compact('jurnals','lokasis','shifts'));
         }else{
-            return view('Satpam.log-history', compact('jurnals','lokasis','shifts'));
+            return view('satpam.log-history', compact('jurnals','lokasis','shifts'));
         }
         
     }
