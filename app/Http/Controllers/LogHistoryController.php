@@ -10,7 +10,6 @@ use App\Models\JurnalSatpam;
 use App\Models\Lokasi;
 use App\Models\Shift;
 use App\Models\User;
-use App\Models\Jadwal;
 use Carbon\Carbon;
 
 
@@ -22,8 +21,27 @@ class LogHistoryController extends Controller
         $lokasis = Lokasi::orderBy('is_active', 'desc')->orderBy('id')->get();
         $shifts  = Shift::orderBy('is_active', 'desc')->orderBy('id')->get();
 
+        // Logika baru untuk $NextShiftUser Id (menggunakan referensi kode Anda)
+        $allLokasi = Lokasi::where('is_active', 1)->get();
+        $latestJurnalsPerLokasi = collect();
+        foreach ($allLokasi as $lokasi) {
+            $latestJurnal = JurnalSatpam::where('lokasi_id', $lokasi->id)
+                ->orderBy('created_at', 'desc')
+                ->first();
+            if ($latestJurnal) {
+                $latestJurnalsPerLokasi->push($latestJurnal);
+            }
+        }
+        $latestShiftJurnal = $latestJurnalsPerLokasi->sortByDesc('created_at')->first();
+        $latestShiftId = $latestShiftJurnal ? $latestShiftJurnal->shift_id : null;
+        $allLatestJurnal = $latestJurnalsPerLokasi->filter(function ($jurnal) use ($latestShiftId) {
+            return $jurnal->shift_id == $latestShiftId;
+        })->values();
+        
+        // $NextShiftUser Id dari latest jurnal (global, dari $latestShiftJurnal)
+        $NextShiftUserId = $latestShiftJurnal ? $latestShiftJurnal->next_shift_user_id : null;
 
-        $query = JurnalSatpam::with(['lokasi','shift','satpam','uploads','updatedBySatpam']);
+        $query = JurnalSatpam::with(['lokasi','shift','satpam','nextShiftUser','uploads','updatedBySatpam']);
 
         // Lokasi (id)
         if ($request->filled('lokasi_id')) {
@@ -54,13 +72,11 @@ class LogHistoryController extends Controller
         }
 
         $jurnals = $query->orderByDesc('id')->get(); // Collection -> forelse @empty bisa
+        $jurnals->each(function ($jurnal) {
+            $jurnal->isApprove = $jurnal->approval_status == 1;
+        });
 
-        if ($user->role !== 'Satpam') {
-            return view('kepalasatpam.log-history', compact('jurnals','lokasis','shifts'));
-        }else{
-            return view('satpam.log-history', compact('jurnals','lokasis','shifts'));
-        }
-        
+        return view('kepala_satpam.log-history', compact('jurnals','lokasis','shifts'));
     }
 
     public function updateStatus(Request $request, $id)
@@ -88,21 +104,20 @@ class LogHistoryController extends Controller
     {
         $jurnal = JurnalSatpam::with(['lokasi', 'shift', 'satpam'])->findOrFail($id);
 
-        // Normalize date and shift name to match jadwals table
         $tanggal   = Carbon::parse($jurnal->tanggal)->toDateString();
-        $lokasiId  = $jurnal->lokasi_id;
-        $shiftId = $jurnal->shift_id;
+        // $lokasiId  = $jurnal->lokasi_id;
+        // $shiftId = $jurnal->shift_id;
 
-        // Ambil semua satpam yang terjadwal pada tanggal + lokasi + shift yang sama
-        $anggotaShift = Jadwal::with('satpam')
-            ->whereDate('tanggal', $tanggal)
-            ->when($lokasiId, fn($q) => $q->where('lokasi_id', $lokasiId))
-            ->when($shiftId, fn($q) => $q->where('shift_id', $shiftId))
-            ->get()
-            ->pluck('satpam.nama') // assumes Jadwal->satpam relation returns User with 'nama'
-            ->filter()             // buang null jika ada
-            ->unique()             // jaga-jaga duplikat
-            ->values();
+        // // Ambil semua satpam yang terjadwal pada tanggal + lokasi + shift yang sama
+        // $anggotaShift = Jadwal::with('satpam')
+        //     ->whereDate('tanggal', $tanggal)
+        //     ->when($lokasiId, fn($q) => $q->where('lokasi_id', $lokasiId))
+        //     ->when($shiftId, fn($q) => $q->where('shift_id', $shiftId))
+        //     ->get()
+        //     ->pluck('satpam.nama') // assumes Jadwal->satpam relation returns User with 'nama'
+        //     ->filter()             // buang null jika ada
+        //     ->unique()             // jaga-jaga duplikat
+        //     ->values();
 
         // Nama file
         $formattedDate = Carbon::parse($jurnal->tanggal)->format('d-m-Y');
@@ -114,7 +129,7 @@ class LogHistoryController extends Controller
         // Render PDF
         $pdf = Pdf::loadView('pdf.jurnal-pdf', [
             'jurnal'        => $jurnal,
-            'anggotaShift'  => $anggotaShift,
+            // 'anggotaShift'  => $anggotaShift,
         ]);
 
         return $pdf->download($filename);

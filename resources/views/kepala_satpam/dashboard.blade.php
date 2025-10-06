@@ -1,55 +1,68 @@
 @extends('layouts.app')
 
 @push('styles')
-    <link rel="stylesheet" href="{{ asset('css/kepala/dashboard.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/kepala_satpam/dashboard.css') }}">
 @endpush
 
 @section('content')
-    @section('title', 'Dashboard - Kepala Satpam')
+    @php
+        $role = Auth::user()->role;
+    @endphp
+
+    @if($role === 'Kepala Satpam')
+        @section('title', 'Dashboard - Kepala Satpam')
+    @else
+        @section('title', 'Dashboard - Satpam')
+    @endif
     <div class="dashboard-kepala">
         <h1>Dashboard</h1>
 
         <div class="top-panels">
             <!-- DAFTAR LOKASI & SHIFT -->
             <div class="lokasi-shift-panel">
-                <div class="header-row">
-                    <h3>Daftar Lokasi & Shift</h3>
-                    <select onchange="location = '?shift_id=' + this.value">
-                        @foreach($shifts as $shift)
-                            <option value="{{ $shift->id }}" {{ $shiftFilterId == $shift->id ? 'selected' : '' }}>
-                                {{ $shift->nama_shift }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
+                <div class="journal-information-panel">
+                    <div class="header-row">
+                        <h3>Journal Information</h3>
+                        <select onchange="location = '?lokasi_id=' + this.value">
+                            @foreach($lokasis as $lokasi)
+                                <option value="{{ $lokasi->id }}" {{ $lokasiFilterId == $lokasi->id ? 'selected' : '' }}>
+                                    {{ $lokasi->nama_lokasi }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
 
-                <div class="scroll-panel">
-                    @forelse($jadwals as $jadwal)
-                        <div class="satpam-card">
-                            <div class="satpam-info">
-                                <img src="{{ $jadwal->satpam->foto
-                                            ? asset('storage/'.$jadwal->satpam->foto)
-                                            : asset('images/profile.jpeg') }}"
-                                alt="foto">
-                                <strong>{{ $jadwal->satpam->nama }}</strong>
+                    <div class="scroll-panel">
+                        @forelse($pendingJournals as $pending)
+                            <div class="satpam-card">
+                                <div class="satpam-info">
+                                    <img src="{{ $pending->foto
+                                                ? asset('storage/'.$pending->foto)
+                                                : asset('images/profile.jpeg') }}"
+                                    alt="foto">
+                                    <strong>{{ $pending->user }}</strong>
+                                </div>
+                                <div class="satpam-info-loc">
+                                    <span class="lokasi-info-item">
+                                        <i class="bi bi-geo-fill iconone"></i>
+                                        <small>{{ $pending->lokasi }}</small>
+                                    </span>
+                                    <span class="lokasi-info-item">
+                                        <i class="bi bi-calendar-check-fill icontwo"></i>
+                                        <small>{{ $pending->shift }}</small>
+                                    </span>
+                                </div>
+                                <div class="satpam-info-status">
+                                    <span class="badge red">
+                                        {{ $pending->status }}
+                                    </span>
+                                </div>
                             </div>
-                            <div class="satpam-info-loc">
-                                <span class="lokasi-info">
-                                    <i class="bi bi-geo-fill"></i>
-                                    <small>{{ $jadwal->lokasi->nama_lokasi ?? '-' }}</small>
-                                </span>
-                            </div>
-                            <div class="satpam-info-status">
-                                <span class="badge {{ $jadwal->status == 'On Duty' ? 'green' : 'red' }}">
-                                    {{ $jadwal->status }}
-                                </span>
-                            </div>
-                        </div>
-                    @empty
-                        <p class="empty-message">Tidak ada jadwal hari ini.</p>
-                    @endforelse
+                        @empty
+                            <p class="empty-message">Tidak ada journal yang belum dikumpulkan.</p>
+                        @endforelse
+                    </div>
                 </div>
-
             </div>
 
             <!-- STATUS JURNAL HARI INI -->

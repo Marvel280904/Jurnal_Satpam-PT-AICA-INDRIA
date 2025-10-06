@@ -262,6 +262,28 @@ td .action-content .download-btn i { color: #eab308; }
     width: 200px;
 }
 
+.Approve-section{
+    margin-top: 20px; 
+    text-align: center; 
+    display: none;
+}
+
+.Approve-section .approve-btn{
+    background: #28a745; color: white; 
+    padding: 10px 20px; border: none; 
+    border-radius: 5px; cursor: pointer;
+}
+
+.Approve-section .approve-btn:hover {
+    background: #188832;
+}
+
+#approveBtn:disabled {
+    background-color: #6c757d !important;
+    cursor: not-allowed !important;
+    opacity: 0.6 !important;
+}
+
 /* --- Approve/Reject Modal --- */
 #statusModal {
     display: none;

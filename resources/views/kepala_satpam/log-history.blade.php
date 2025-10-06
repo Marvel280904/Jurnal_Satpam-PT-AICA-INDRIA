@@ -1,10 +1,14 @@
 @extends('layouts.app')
 
 @push('styles')
-    <link rel="stylesheet" href="{{ asset('css/kepala/log-history.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/kepala_satpam/log-history.css') }}">
 @endpush
 
 @section('content')
+    @php
+        $role = Auth::user()->role;
+        $currentUserId = Auth::id();
+    @endphp
 
     @section('title', 'Log History')
 
@@ -59,7 +63,8 @@
                             <th class="col-name">Name</th>
                             <th class="col-role">Role</th>
                             <th class="col-updated">Updated</th>
-                            <th class="col-status">Status</th>
+                            <th class="col-nextShift">Next Shift Approval</th>
+                            <th class="col-status">Journal Status</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -72,14 +77,22 @@
                                 <td>{{ $jurnal->satpam->role ?? '-' }}</td>
                                 <td>{{ $jurnal->updatedBySatpam->nama ?? '-' }}</td>
                                 <td>
+                                    @if($jurnal->approval_status == 1)
+                                        <span class="badge green">Approve</span>
+                                    @else
+                                        <span class="badge yellow">Waiting</span>
+                                    @endif
+                                </td>
+                                <td>
                                     <div class="action-content">
                                         @php $status = strtolower($jurnal->status); @endphp
 
-                                        @if(Auth::user()->role === 'Kepala Satpam')
+                                        @if($role === 'Kepala Satpam' && $jurnal->isApprove)
                                             <button type="button"
                                                     class="badge-btn status-open"
                                                     data-id="{{ $jurnal->id }}"
                                                     data-status="{{ $status }}"
+                                                    title="Update Status"
                                                     style="all:unset; cursor:pointer;">
                                                 @if($status === 'approve')
                                                     <span class="badge green">Approve</span>
@@ -110,13 +123,15 @@
                                             <i class="bi bi-pencil-square" style="font-size:18px; color: #007bff;"></i>
                                         </a>
                                         
-                                        <form action="{{ route('jurnal.destroy', $jurnal->id) }}" method="POST" style="display: inline;" class="delete-form">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="button" class="delete-btn" style="border: none; cursor: pointer; margin-left: 0px; padding: 0;" title="Delete Jurnal">
-                                                <i class="bi bi-trash-fill" style="font-size:18px; color: #dc3545;"></i>
-                                            </button>
-                                        </form>
+                                        @if ($role === 'Kepala Satpam')
+                                            <form action="{{ route('jurnal.destroy', $jurnal->id) }}" method="POST" style="display: inline;" class="delete-form">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="button" class="delete-btn" style="border: none; cursor: pointer; margin-left: 0px; padding: 0;" title="Delete Jurnal">
+                                                    <i class="bi bi-trash-fill" style="font-size:18px; color: #dc3545;"></i>
+                                                </button>
+                                            </form>
+                                        @endif
 
                                         <a href="{{ route('log-history.download', $jurnal->id) }}" class="download-btn" target="_blank" title="Download Jurnal">
                                             <i class="bi bi-file-earmark-arrow-down-fill" style="font-size:18px; color: #e63946;"></i>
@@ -148,11 +163,17 @@
                         <table class="popup-detail-table" id="popup-detail-table">
                             <!-- Diisi oleh JavaScript -->
                         </table>
+
+                        <div id="approve-section" class="Approve-section">
+                            <button id="approveBtn" class="approve-btn">
+                                Approve Journal
+                            </button>
+                        </div>                        
                     </div>
                 </div>
 
                 <!-- Approve/Reject Modal (only used by Kepala) -->
-                @if(Auth::user()->role === 'Kepala Satpam')
+                @if($role === 'Kepala Satpam')
                     <div id="statusModal">
                         <div class="modal-content">
                             <button type="button" id="statusClose" class="close-btn">&times;</button>
@@ -223,22 +244,24 @@
                 let visibleCount = 0;
 
                 rows.forEach(row => {
-                const tds = row.querySelectorAll('td');
-                const tanggalVal = (tds[0]?.textContent || '');              // "August 12, 2025"
-                const lokasiVal  = (tds[1]?.textContent || '').toLowerCase();
-                const shiftVal   = (tds[2]?.textContent || '').toLowerCase();
-                const namaVal    = (tds[3]?.textContent || '').toLowerCase();
-                const roleVal    = (tds[4]?.textContent || '').toLowerCase();
-                const actionVal  = (tds[5]?.textContent || '').toLowerCase();
+                    const tds = row.querySelectorAll('td');
+                    const tanggalVal  = (tds[0]?.textContent || '');              // "August 12, 2025"
+                    const lokasiVal   = (tds[1]?.textContent || '').toLowerCase();
+                    const shiftVal    = (tds[2]?.textContent || '').toLowerCase();
+                    const namaVal     = (tds[3]?.textContent || '').toLowerCase();
+                    const roleVal     = (tds[4]?.textContent || '').toLowerCase();
+                    const actionVal   = (tds[5]?.textContent || '').toLowerCase();
+                    const approvalVal = (tds[6]?.textContent || '').toLowerCase();
+                    const statusVal   = (tds[7]?.textContent || '').toLowerCase();
 
-                const matchLokasi  = !lokasi  || lokasiVal.includes(lokasi);
-                const matchShift   = !shift   || shiftVal.includes(shift);
-                const matchTanggal = !tanggal || tanggalVal.includes(formatTanggal(tanggal));
-                const matchSearch  = !search  || namaVal.includes(search) || roleVal.includes(search) || actionVal.includes(search);
+                    const matchLokasi  = !lokasi  || lokasiVal.includes(lokasi);
+                    const matchShift   = !shift   || shiftVal.includes(shift);
+                    const matchTanggal = !tanggal || tanggalVal.includes(formatTanggal(tanggal));
+                    const matchSearch  = !search  || namaVal.includes(search) || roleVal.includes(search) || actionVal.includes(search) || approvalVal.includes(search) || statusVal.includes(search);
 
-                const show = matchLokasi && matchShift && matchTanggal && matchSearch;
-                row.style.display = show ? '' : 'none';
-                if (show) visibleCount++;
+                    const show = matchLokasi && matchShift && matchTanggal && matchSearch;
+                    row.style.display = show ? '' : 'none';
+                    if (show) visibleCount++;
                 });
 
                 noDataRow.style.display = (visibleCount === 0) ? '' : 'none';
@@ -255,34 +278,37 @@
         });
 
         //// POP UP JOURNAL DETAIL
+        const currentUserId = {{ $currentUserId }};
         document.addEventListener("DOMContentLoaded", function () {
             // === POPUP DETAIL FUNCTIONALITY ===
             const detailButtons = document.querySelectorAll('.view-detail-btn');
             const popup = document.getElementById('popup-detail');
             const table = document.getElementById('popup-detail-table');
+            const approveSection = document.getElementById('approve-section');
+            const approveBtn = document.getElementById('approveBtn');
 
             detailButtons.forEach(btn => {
                 btn.addEventListener('click', function () {
                     const jurnal = JSON.parse(this.dataset.jurnal);
 
                     const format = (val) => val ?? '-';
+                    const laporanKegiatan = jurnal.laporan_kegiatan 
+                    ? jurnal.laporan_kegiatan.replace(/\n/g, '<br>') 
+                    : '-';
 
                     const rows = [
                         ['Location', format(jurnal.lokasi?.nama_lokasi)],
                         ['Shift', format(jurnal.shift?.nama_shift)],
+                        ['Next Shift', format(jurnal.next_shift_user?.nama)],
                         ['Date', new Date(jurnal.tanggal).toLocaleDateString('en-US', {
                             year: 'numeric', month: 'long', day: 'numeric'
                         })],
-                        ['Cuaca', format(jurnal.cuaca)],
+                        ['Laporan Kegiatan', laporanKegiatan],
                         ['Laporan Kejadian/Temuan', format(jurnal.kejadian_temuan)],
                         ['Lembur', format(jurnal.lembur)],
                         ['Proyek/Vendor', format(jurnal.proyek_vendor)],
-                        ['Paket/Dokumen', format(jurnal.paket_dokumen)],
-                        ['Tamu Belum Keluar', format(jurnal.tamu_belum_keluar)],
-                        ['Karyawan Dinas Luar', format(jurnal.karyawan_dinas_keluar)],
                         ['Barang Inventaris Keluar', format(jurnal.barang_keluar)],
                         ['Kendaraan Dinas Luar', format(jurnal.kendaraan_dinas_keluar)],
-                        ['Lampu/Penerangan Mati', format(jurnal.lampu_mati)],
                         ['Informasi Tambahan', format(jurnal.info_tambahan)],
                     ];
 
@@ -302,6 +328,25 @@
                     }
 
                     table.innerHTML = html;
+
+                    // show button approve khusus user next shift
+                    const isNextShiftUser  = jurnal.next_shift_user_id && currentUserId == jurnal.next_shift_user_id;
+                    const isApproved = jurnal.approval_status == 1;
+                    
+                    if (isNextShiftUser  && !isApproved) {
+                        approveSection.style.display = 'block';
+                        approveBtn.disabled = false;
+                        approveBtn.textContent = 'Approve Journal';
+                        // Attach event listener (lihat poin 5)
+                        approveBtn.onclick = () => handleApprove(jurnal.id);
+                    } else if (isApproved) {
+                        approveSection.style.display = 'block';
+                        approveBtn.disabled = true;
+                        approveBtn.textContent = 'Already Approved';
+                        approveBtn.onclick = null;
+                    } else {
+                        approveSection.style.display = 'none';
+                    }
                     popup.style.display = 'block';
                 });
             });
@@ -375,6 +420,40 @@
         function closeDetailPopup() {
             document.getElementById('popup-detail').style.display = 'none';
         }
+
+        // ubah status approval jurnal oleh next shift
+        function handleApprove(jurnalId) {
+            const csrf = document.querySelector('meta[name="csrf-token"]').content;
+            
+            approveBtn.disabled = true;
+            approveBtn.textContent = 'Approving...';
+            approveBtn.style.background = '#6c757d';
+            
+            fetch(`/jurnal/${jurnalId}/approve`, {  // Sesuaikan dengan route Anda
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': csrf,
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = data.redirect_url;
+                } else {
+                    throw new Error(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Gagal approve: ' + error.message);
+                approveBtn.disabled = false;
+                approveBtn.textContent = 'Approve Journal';
+                approveBtn.style.background = '#28a745';
+            });
+        }
+  
 
         // ===== SCRIPT UNTUK POPUP KONFIRMASI HAPUS =====
         document.addEventListener('DOMContentLoaded', function() {

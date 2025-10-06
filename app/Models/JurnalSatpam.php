@@ -7,18 +7,21 @@ use Illuminate\Database\Eloquent\Model;
 class JurnalSatpam extends Model
 {
     protected $fillable = [
-        'tanggal', 'lokasi_id', 'shift_id', 'user_id',
-        'cuaca', 'is_kejadian_temuan', 'kejadian_temuan',
+        'tanggal', 'lokasi_id', 'shift_id', 'user_id', 'next_shift_user_id',
+        'laporan_kegiatan', 'is_kejadian_temuan', 'kejadian_temuan',
         'is_lembur', 'lembur', 'is_proyek_vendor', 'proyek_vendor',
-        'is_paket_dokumen', 'paket_dokumen', 'is_tamu_belum_keluar', 'tamu_belum_keluar',
-        'is_karyawan_dinas_keluar', 'karyawan_dinas_keluar', 'is_barang_keluar', 'barang_keluar',
-        'is_kendaraan_dinas_keluar', 'kendaraan_dinas_keluar', 'is_lampu_mati', 'lampu_mati',
-        'info_tambahan', 'status', 'updated_by'
+        'is_barang_keluar', 'barang_keluar', 'is_kendaraan_dinas_keluar', 
+        'kendaraan_dinas_keluar', 'info_tambahan', 'approval_status', 'status', 'updated_by'
     ];
 
     public function satpam()
     {
         return $this->belongsTo(Satpam::class, 'user_id');
+    }
+
+    public function nextShiftUser()
+    {
+        return $this->belongsTo(Satpam::class, 'next_shift_user_id');
     }
 
     public function lokasi()

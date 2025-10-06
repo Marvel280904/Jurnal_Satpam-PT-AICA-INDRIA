@@ -62,7 +62,7 @@
     display: flex;
     align-items: center;
     border-bottom: 1px solid #eee;
-    padding: 10px 0;
+    padding: 5px 0px; 
     gap: 15px;
 }
 .satpam-card img {
@@ -70,34 +70,42 @@
     height: 40px;
     border-radius: 50%;
     object-fit: cover;
+    flex-shrink: 0;
 }
 .satpam-info {
     display: flex;
     align-items: center; 
     gap: 10px;
-    flex: 1;
+    width: 30%; 
     min-width: 0;
+}
+.satpam-info strong {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; 
 }
 .satpam-info-loc {
     display: flex;
     align-items: center;
-    gap: 8px;
-    flex-shrink: 0;
-    flex: 0.5;
+    gap: 20px;
+    width: 45%;
 }
 .satpam-info-status {
     margin-left: auto;
     flex-shrink: 0;
 }
-.lokasi-info {
+.lokasi-info-item { /* Style untuk grup baru */
     display: flex;
     align-items: center;
-    gap: 3px;
+    gap: 5px;
     color: #555;
     font-size: 0.9em;
 }
-.lokasi-info i {
+.lokasi-info-item .iconone {
     color:rgb(215, 8, 8);
+}
+.lokasi-info-item .icontwo {
+    color:rgb(0, 0, 0);
 }
 
 /* --- Components inside "Status Pengisian Jurnal" Panel --- */
@@ -278,5 +286,11 @@
     .topbar1 .notif {
         margin: 0px;
         padding-right: 7px;
+    }
+    .satpam-info {
+        width: 25%;
+    }
+    .satpam-info-loc {
+        gap: 15px;
     }
 }

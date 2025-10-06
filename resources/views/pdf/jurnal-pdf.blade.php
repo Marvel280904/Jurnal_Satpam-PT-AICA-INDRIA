@@ -33,7 +33,7 @@
 
         .tanggal span {
             font-size: 12px;
-            margin-left:85%;
+            margin-left:84%;
         }
         
         h1 {
@@ -82,7 +82,7 @@
 
         .left-info td:first-child {
             font-weight: bold;
-            width: 150px;
+            width: 169px;
         }
 
         .right-info td:first-child {
@@ -115,7 +115,7 @@
         }
 
         td:first-child {
-            width: 180px;
+            width: 160px;
             font-weight: bold;
         }
 
@@ -146,14 +146,22 @@
     <div class="flex-info">
         <div class="left-info">
             <table>
-                <tr><td>Nama</td><td>: {{ $jurnal->satpam->nama ?? '-' }}</td></tr>
+                <tr><td>Pengisi</td><td>: {{ $jurnal->satpam->nama ?? '-' }}</td></tr>
                 <tr><td>Lokasi</td><td>: {{ $jurnal->lokasi->nama_lokasi ?? '-' }}</td></tr>
                 <tr><td>Shift</td><td>: {{ $jurnal->shift->nama_shift ?? '-' }}</td></tr>
+                <tr><td>Next Shift</td><td>: {{ $jurnal->nextShiftUser->nama ?? '-' }}</td></tr>
                 <tr><td>Tanggal</td><td>: {{ \Carbon\Carbon::parse($jurnal->tanggal)->format('F d, Y') }}</td></tr>
-                <tr><td>Status</td><td>: {{ ucfirst($jurnal->status) }}</td></tr>
+                <tr><td>Next Shift Approval</td><td>: 
+                    @if($jurnal->approval_status == 1)
+                        Approve
+                    @else
+                        Waiting
+                    @endif
+                </td></tr>
+                <tr><td>Journal Status</td><td>: {{ ucfirst($jurnal->status) }}</td></tr>
             </table>
         </div>
-        <div class="right-info">
+        <!-- <div class="right-info">
             <table>
                 <tr>
                     <td style="font-weight: bold;">Anggota Shift</td>
@@ -162,7 +170,7 @@
                         <div class="guards">
                             @if(isset($anggotaShift) && count($anggotaShift) > 0)
                                 @foreach($anggotaShift as $anggota)
-                                    ~ {{ $anggota }}<br>
+                                    {{ $anggota }}<br>
                                 @endforeach
                             @else
                                 Tidak ada anggota shift
@@ -171,13 +179,13 @@
                     </td>
                 </tr>
             </table>
-        </div>
+        </div> -->
     </div>
 
     <table>
         <tr>
-            <td>Cuaca</td>
-            <td>{{ $jurnal->cuaca ?? '-' }}</td>
+            <td>Laporan Kegiatan</td>
+            <td>{!! nl2br(e($jurnal->laporan_kegiatan)) !!}</td>
         </tr>
 
         <tr>
@@ -208,33 +216,6 @@
         </tr>
 
         <tr>
-            <td>Paket / Dokumen</td>
-            <td>{{ $jurnal->is_paket_dokumen == 1 ? 'Yes' : ($jurnal->is_paket_dokumen == 0 ? 'No' : '-') }}</td>
-        </tr>
-        <tr>
-            <td></td>
-            <td>{{ $jurnal->paket_dokumen ?? '-' }}</td>
-        </tr>
-
-        <tr>
-            <td>Tamu Belum Keluar</td>
-            <td>{{ $jurnal->is_tamu_belum_keluar == 1 ? 'Yes' : ($jurnal->is_tamu_belum_keluar == 0 ? 'No' : '-') }}</td>
-        </tr>
-        <tr>
-            <td></td>
-            <td>{{ $jurnal->tamu_belum_keluar ?? '-' }}</td>
-        </tr>
-
-        <tr>
-            <td>Karyawan Dinas Luar</td>
-            <td>{{ $jurnal->is_karyawan_dinas_keluar == 1 ? 'Yes' : ($jurnal->is_karyawan_dinas_keluar == 0 ? 'No' : '-') }}</td>
-        </tr>
-        <tr>
-            <td></td>
-            <td>{{ $jurnal->karyawan_dinas_keluar ?? '-' }}</td>
-        </tr>
-
-        <tr>
             <td>Barang Inventaris Keluar</td>
             <td>{{ $jurnal->is_barang_keluar == 1 ? 'Yes' : ($jurnal->is_barang_keluar == 0 ? 'No' : '-') }}</td>
         </tr>
@@ -250,15 +231,6 @@
         <tr>
             <td></td>
             <td>{{ $jurnal->kendaraan_dinas_keluar ?? '-' }}</td>
-        </tr>
-
-        <tr>
-            <td>Lampu / Penerangan Mati</td>
-            <td>{{ $jurnal->is_lampu_mati == 1 ? 'Yes' : ($jurnal->is_lampu_mati == 0 ? 'No' : '-') }}</td>
-        </tr>
-        <tr>
-            <td></td>
-            <td>{{ $jurnal->lampu_mati ?? '-' }}</td>
         </tr>
 
         <tr>

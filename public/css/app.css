@@ -392,7 +392,7 @@ body, html {
 .notif-panel {
   position: absolute; 
   left: 50%; 
-  transform: translate(-50%, -10px) scale(0.98);
+  transform: translate(-90%, -10px) scale(0.98);
   top: 48px; 
   width: 380px; 
   max-width: 90vw;
@@ -408,7 +408,7 @@ body, html {
 }
 .notif-panel.open {
   opacity: 1; 
-  transform: translate(-50%, 0) scale(1); 
+  transform: translate(-90%, 0) scale(1); 
   pointer-events: auto;
 }
 

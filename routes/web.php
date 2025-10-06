@@ -11,11 +11,9 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\SystemLogController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PreventBackHistory;
-use App\Http\Controllers\SatpamDashboardController;
 use App\Http\Controllers\JurnalSatpamController;
 use App\Http\Controllers\LogHistoryController;
-use App\Http\Controllers\KepalaSatpamController;
-use App\Http\Controllers\GuardController;
+use App\Http\Controllers\DashboardController;
 
 
 
@@ -38,7 +36,7 @@ Route::middleware('auth', 'prevent-back-history')->group(function () {
         } elseif ($user->role === 'Satpam') {
             return redirect()->route('dashboard.satpam');
         } elseif ($user->role === 'Kepala Satpam') {
-            return redirect()->route('dashboard.kepala'); // disiapkan nanti
+            return redirect()->route('dashboard.kepala');
         }
 
         abort(403, 'Role tidak dikenali.');
@@ -46,7 +44,6 @@ Route::middleware('auth', 'prevent-back-history')->group(function () {
 
     // route dashboard admin
     Route::get('/dashboard-admin', [AdminDashboardController::class, 'index'])->name('dashboard.admin');
-
 
     // route my profile
     Route::get('/my-profile', [ProfileController::class, 'show'])->name('profile.show');
@@ -73,30 +70,29 @@ Route::middleware('auth', 'prevent-back-history')->group(function () {
     Route::get('/system-logs', [SystemLogController::class, 'index'])->name('system.logs');
 
     // route dashboard satpam
-    Route::get('/dashboard-satpam', [SatpamDashboardController::class, 'index'])->name('dashboard.satpam');
+    Route::get('/dashboard-satpam', [DashboardController::class, 'index'])->name('dashboard.satpam');
+    // route dashboard kepala satpam
+    Route::get('/dashboard-kepala', [DashboardController::class, 'index'])->name('dashboard.kepala');
 
     // route journal submission
     Route::get('/journal-submission', [JurnalSatpamController::class, 'create'])->name('jurnal.submission');
     Route::post('/journal-submission', [JurnalSatpamController::class, 'store'])->name('jurnal.store');
     Route::get('/shifts/by-location/{id}', [JurnalSatpamController::class, 'getByLocation']);
     Route::get('/jurnal/edit/{id}', [JurnalSatpamController::class, 'edit'])->name('jurnal.edit');
-    Route::get('/jurnal/copy/{id}', [JurnalSatpamController::class, 'copy'])->name('jurnal.copy');
     Route::delete('/jurnal/delete/{id}', [JurnalSatpamController::class, 'destroy'])->name('jurnal.destroy');
     Route::put('/jurnal/{id}/update', [JurnalSatpamController::class, 'update'])->name('jurnal.update');
+    Route::post('/jurnal/{id}/approve', [JurnalSatpamController::class, 'updateApproval'])->name('jurnal.approve');
 
     // route log history
     Route::get('/log-history', [LogHistoryController::class, 'index'])->name('log.history');
     Route::post('/jurnal/{id}/status', [LogHistoryController::class, 'updateStatus'])->name('jurnal.updateStatus');
     Route::get('/log-history/download/{id}', [LogHistoryController::class, 'downloadPDF'])->name('log-history.download');
-    
-    // route dashboard kepala satpam
-    Route::get('/dashboard-kepala', [KepalaSatpamController::class, 'index'])->name('dashboard.kepala');
 
     // route guard data
-    Route::get('/guard-data', [GuardController::class, 'index'])->name('guard.data');
-    Route::post('/guard-data/update/{id}', [GuardController::class, 'update'])->name('guard.update');
-    Route::get('/guard-data/jadwal/check', [GuardController::class, 'checkJadwal'])->name('guard.jadwal.check');
-    Route::post('/guard-data/jadwal/store', [GuardController::class, 'storeJadwal'])->name('guard.jadwal.store');
+    // Route::get('/guard-data', [GuardController::class, 'index'])->name('guard.data');
+    // Route::post('/guard-data/update/{id}', [GuardController::class, 'update'])->name('guard.update');
+    // Route::get('/guard-data/jadwal/check', [GuardController::class, 'checkJadwal'])->name('guard.jadwal.check');
+    // Route::post('/guard-data/jadwal/store', [GuardController::class, 'storeJadwal'])->name('guard.jadwal.store');
     
 });
 

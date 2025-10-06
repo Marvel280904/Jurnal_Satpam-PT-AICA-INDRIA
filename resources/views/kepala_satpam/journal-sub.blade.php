@@ -1,13 +1,31 @@
 @extends('layouts.app')
 
 @push('styles')
-    <link rel="stylesheet" href="{{ asset('css/kepala/journal-submission.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/kepala_satpam/journal-submission.css') }}">
 @endpush
 
 @section('content')
     <meta name="csrf-token" content="{{ csrf_token() }}">
     
     @section('title', 'Journal Submission')
+
+    @if(session('flash_notification'))
+        @php
+            // 1. Ambil array notifikasi dari session ke dalam satu variabel
+            $notification = session('flash_notification');
+            
+            // 2. Tentukan kelas CSS dari 'type' di dalam array
+            $flashTypeClass = $notification['type'] ?? 'warning';
+        @endphp
+        <div id="notification-overlay" class="modal-overlay is-visible">
+            <div id="persistent-notification" class="flash-toast {{ $flashTypeClass }}">
+                {{-- 3. Tampilkan 'message' dari dalam array --}}
+                <span class="flash-text">{{ $notification['message'] }}</span>
+                
+                <button id="close-notification-btn" class="flash-close">&times;</button>
+            </div>
+        </div>
+    @endif
     
     <div id="top-anchor" class="journal-container">
         <h1>Journal Submission</h1>
@@ -21,60 +39,71 @@
             <input name="lokasijaga" type="hidden">
             <input name="shiftjaga" type="hidden">
             <input name="tanggaljaga" type="hidden">
+            <input name="nextshift" type="hidden">
+
 
             <div class="form-group-row">
                 <div>
-                    <label>Lokasi <i class="bi bi-asterisk"></i> </label>
+                    <label>Lokasi <i class="bi bi-asterisk"></i></label>
                     <select name="lokasi_id" id="lokasiSelect" required>
                         <option value="" disabled selected>-- Pilih Lokasi --</option>
                         @foreach($lokasis as $lokasi)
-                            {{-- Logika untuk auto-select berdasarkan jadwal --}}
-                            <option value="{{ $lokasi->id }}" {{ (isset($prefilledJadwal) && $prefilledJadwal->lokasi_id == $lokasi->id) ? 'selected' : '' }}>
-                                {{ $lokasi->nama_lokasi }}
-                            </option>
+                            <option value="{{ $lokasi->id }}">{{ $lokasi->nama_lokasi }}</option>
                         @endforeach
                     </select>
                 </div>
 
                 <div>
-                    <label>Shift <i class="bi bi-asterisk"></i> </label>
+                    <label>Shift <i class="bi bi-asterisk"></i></label>
                     <select name="shift_id" id="shiftSelect" required>
                         <option value="" disabled selected>-- Pilih Shift --</option>
                         @foreach($shifts as $shift)
-                            {{-- Logika untuk auto-select berdasarkan jadwal --}}
-                            <option value="{{ $shift->id }}" {{ (isset($prefilledJadwal) && $prefilledJadwal->shift_id == $shift->id) ? 'selected' : '' }}>
-                                {{ $shift->nama_shift }}
-                            </option>
+                            <option value="{{ $shift->id }}">{{ $shift->nama_shift }}</option>
                         @endforeach
                     </select>
                 </div>
 
                 <div>
-                    <label>Tanggal <i class="bi bi-asterisk"></i> </label>
-                    <input type="date" name="tanggal" 
-                        value="{{ isset($prefilledJadwal) ? \Carbon\Carbon::parse($prefilledJadwal->tanggal)->toDateString() : \Carbon\Carbon::today()->toDateString() }}" 
-                        required>
+                    <label>Next Shift <i class="bi bi-asterisk"></i> </label>
+                    <select name="next_shift_user_id" id="nextShiftSelect" required>
+                        <option value="" disabled selected>-- Pilih Grup --</option>
+                        {{-- Loop semua satpam yang dikirim dari controller --}}
+                        @foreach($satpams as $satpam)
+                            <option value="{{ $satpam->id }}">{{ $satpam->nama }}</option>
+                        @endforeach
+                    </select>
                 </div>
+
+                <div>
+                    <label>Tanggal <i class="bi bi-asterisk"></i></label>
+                    {{-- Selalu menampilkan tanggal hari ini sebagai default --}}
+                    <input type="date" name="tanggal" value="{{ \Carbon\Carbon::today()->toDateString() }}" required>
+                </div>   
             </div>
 
             <div class="form-group">
                 <label>Laporan Kegiatan <i class="bi bi-asterisk"></i> </label>
-                <textarea placeholder="1. Kegiatan 1 (Jam) 
-2. Kegiatan 2 (Jam)
-3. DST..."></textarea>
+                <textarea name="laporan_kegiatan" required placeholder="Wajib diisi">1.
+2.
+3.
+4.
+5.
+6.
+7.
+8.</textarea>
             </div>
 
             @php
-                $items = [
+                $itemsYesNo = [
                     'kejadian_temuan' => 'Laporan Kejadian/Temuan',
                     'lembur' => 'Lembur',
                     'proyek_vendor' => 'Proyek/Vendor',
                 ];
             @endphp
 
-            @foreach($items as $key => $label)
+            @foreach($itemsYesNo as $key => $label)
                 <div class="form-group">
-                    <label>{{ $label }} <i class="bi bi-asterisk"></i> </label>
+                    <label>{{ $label }}</label>
                     <div class="radio-group">
                         <label><input type="radio" name="is_{{ $key }}" value="1" required> Yes</label>
                         <label><input type="radio" name="is_{{ $key }}" value="0" required> No</label>
@@ -84,13 +113,13 @@
             @endforeach
 
             @php
-                $items = [
+                $itemsMasukKeluar = [
                     'barang_keluar' => 'Barang Inventaris',
                     'kendaraan_dinas_keluar' => 'Kendaraan Dinas',
                 ];
             @endphp
 
-            @foreach($items as $key => $label)
+            @foreach($itemsMasukKeluar as $key => $label)
                 <div class="form-group">
                     <label>{{ $label }} <i class="bi bi-asterisk"></i> </label>
                     <div class="radio-group">
@@ -168,8 +197,15 @@
                 renderFileList();
             }
 
-            // ---- realtime binding for every (radio yes/no, textarea) pair ----
-            @foreach($items as $key => $label)
+            // realtime cek radio yes/no dan textarea 
+            @php
+                $itemsYesNo = [
+                    'kejadian_temuan' => 'Laporan Kejadian/Temuan',
+                    'lembur' => 'Lembur',
+                    'proyek_vendor' => 'Proyek/Vendor',
+                ];
+            @endphp
+            @foreach($itemsYesNo as $key => $label)
                 (function(){
                 const yes = document.querySelector('input[name="is_{{ $key }}"][value="1"]');
                 const no  = document.querySelector('input[name="is_{{ $key }}"][value="0"]');
@@ -198,6 +234,43 @@
                 if (yes)  yes.addEventListener('change', sync_{{ $key }});
                 if (no)   no.addEventListener('change',  sync_{{ $key }});
                 ta.addEventListener('input', sync_{{ $key }});
+                })();
+            @endforeach
+
+            // realtime cek radio masuk/keluar dan textarea 
+            @php
+                $itemsMasukKeluar = [
+                    'barang_keluar' => 'Barang Inventaris',
+                    'kendaraan_dinas_keluar' => 'Kendaraan Dinas',
+                ];
+            @endphp
+            @foreach($itemsMasukKeluar as $key => $label)
+                (function(){
+                    const masuk  = document.querySelector('input[name="is_{{ $key }}"][value="1"]');
+                    const keluar = document.querySelector('input[name="is_{{ $key }}"][value="0"]');
+                    const ta     = document.querySelector('textarea[name="{{ $key }}"]');
+                    if (!masuk || !keluar || !ta) return;
+
+                    function sync_masuk_keluar() {
+                        // Jika 'Masuk' ATAU 'Keluar' dipilih -> textarea menjadi wajib
+                        if (masuk.checked || keluar.checked) {
+                            ta.required = true;
+                            if (ta.value.trim() === '') {
+                                ta.setCustomValidity('Keterangan wajib diisi jika memilih Masuk atau Keluar.');
+                            } else {
+                                ta.setCustomValidity('');
+                            }
+                        } else {
+                            // Jika tidak ada yang dipilih -> textarea tidak wajib
+                            ta.required = false;
+                            ta.setCustomValidity('');
+                        }
+                    }
+
+                    sync_masuk_keluar(); // Jalankan saat halaman dimuat
+                    masuk.addEventListener('change', sync_masuk_keluar);
+                    keluar.addEventListener('change', sync_masuk_keluar);
+                    ta.addEventListener('input', sync_masuk_keluar);
                 })();
             @endforeach
 

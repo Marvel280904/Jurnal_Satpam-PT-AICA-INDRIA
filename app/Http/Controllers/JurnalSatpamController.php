@@ -5,199 +5,140 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Lokasi;
 use App\Models\Shift;
+use App\Models\Satpam;
 use App\Models\JurnalSatpam;
 use App\Models\Upload;
-use App\Models\Jadwal;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 
 class JurnalSatpamController extends Controller
 {
+    // Method private untuk melakukan pengecekan dan mengembalikan data yang dibutuhkan
+    private function checking($user)
+    {
+        $allLokasi = Lokasi::where('is_active', 1)->get();
+        $totalLokasiCount = $allLokasi->count();
+
+        $latestJurnalsPerLokasi = collect();
+        foreach ($allLokasi as $lokasi) {
+            $latestJurnal = JurnalSatpam::where('lokasi_id', $lokasi->id)
+                ->orderBy('created_at', 'desc')
+                ->first();
+            if ($latestJurnal) {
+                $latestJurnalsPerLokasi->push($latestJurnal);
+            }
+        }
+
+        $latestShiftJurnal = $latestJurnalsPerLokasi->sortByDesc('created_at')->first();
+        $latestShiftId = $latestShiftJurnal ? $latestShiftJurnal->shift_id : null;
+
+        $allLatestJurnal = $latestJurnalsPerLokasi->filter(function ($jurnal) use ($latestShiftId) {
+            return $jurnal->shift_id == $latestShiftId;
+        })->values();
+
+        $UserLoginNow = $user->id;
+        $count = $totalLokasiCount - $allLatestJurnal->count();
+
+        $getUserNameById = function ($id) {
+            return Satpam::where('id', $id)->value('nama') ?? 'User tidak dikenal';
+        };
+
+        return compact(
+            'allLokasi',
+            'totalLokasiCount',
+            'latestJurnalsPerLokasi',
+            'latestShiftJurnal',
+            'latestShiftId',
+            'allLatestJurnal',
+            'UserLoginNow',
+            'count',
+            'getUserNameById'
+        );
+    }
+
     public function create()
     {
         $user = Auth::user();
 
         $viewData = [
             'lokasis' => Lokasi::where('is_active', 1)->get(),
-            'shifts' => Shift::where('is_active', 1)->get(),
-            'prefilledJadwal' => null
-        ];
+            'shifts'  => Shift::where('is_active', 1)->get(),
+            'satpams' => Satpam::where('role', 'Satpam')->get(),
+        ]; 
 
         if ($user->role !== 'Satpam') {
-            return view('kepalasatpam.journal-sub', $viewData);
+            return view('kepala_satpam.journal-sub', $viewData);
         }
 
-        // 1. Ambil semua lokasi aktif
-        $allLokasi = Lokasi::where('is_active', 1)->get();
+        $data = $this->checking($user);
 
-        // 2. Ambil latest jurnal per lokasi
-        $allLatestJurnal = [];
-        foreach ($allLokasi as $lokasi) {
-            $latestJurnal = JurnalSatpam::where('lokasi_id', $lokasi->id)
-                ->orderBy('tanggal', 'desc')
-                ->orderBy('shift_id', 'desc')
-                ->first();
-
-            if ($latestJurnal) {
-                $allLatestJurnal[] = $latestJurnal;
-            }
+        // Jika tidak ada jurnal sama sekali
+        if ($data['latestJurnalsPerLokasi']->isEmpty()) {
+            return view('kepala_satpam.journal-sub', $viewData);
         }
 
-        //dd($allLatestJurnal);
-        // 3. Kalau belum ada data jurnal, abaikan pengecekan
-        if (empty($allLatestJurnal)) {
-            return view('satpam.journal-sub', $viewData);
-        }
+        // Jika semua lokasi sudah disubmit jurnal (count = 0)
+        if ($data['count'] == 0) {
+            $isUserNextShift = $data['allLatestJurnal']->contains(function ($jurnal) use ($data) {
+                return $jurnal->next_shift_user_id == $data['UserLoginNow'];
+            });
 
-        // 8. Ambil jadwal user hari ini
-        $today = now()->today();
-        $todaysJadwal = Jadwal::where('user_id', $user->id)
-            ->whereDate('tanggal', $today)
-            ->first();
-
-        // 4. Ambil semua shift aktif dan urutkan
-        $activeShifts = Shift::where('is_active', 1)->orderBy('mulai_shift')->get();
-
-        // Variabel untuk menyimpan tanggung jawab user
-        $count = 0;
-        $UserResponsibleData = [];
-
-        // 5. Loop semua latest jurnal per lokasi
-        foreach ($allLatestJurnal as $latestJurnal) {
-            // Hitung next shift dan tanggalnya
-            $latestShiftIndex = $activeShifts->search(fn($shift) => $shift->id == $latestJurnal->shift_id);
-            if ($latestShiftIndex === false) {
-                continue; // skip jika shift tidak ditemukan
-            }
-
-            $nextShiftIndex = ($latestShiftIndex + 1) % $activeShifts->count();
-            $nextShift = $activeShifts[$nextShiftIndex];
-            $nextDate = \Carbon\Carbon::parse($latestJurnal->tanggal);
-            if ($nextShiftIndex == 0) {
-                $nextDate->addDay();
-            }
-
-            // 6. Ambil semua user yang bertanggung jawab di jadwal berikutnya di lokasi ini
-            $allResponsibleUsers = Jadwal::whereDate('tanggal', $latestJurnal->tanggal)
-                ->where('lokasi_id', $latestJurnal->lokasi_id)
-                ->where('shift_id', $nextShift->id)
-                ->get();
-
-            // 7. Cek apakah user login bertanggung jawab di jadwal ini
-            foreach ($allResponsibleUsers as $jadwal) {
-                if ($jadwal->user_id == $user->id) {
-                    $count++;
-                    $UserResponsibleData[] = $jadwal; // simpan data terakhir yang ditemukan
-                }
-            }
-        }
-
-        if (!$todaysJadwal) {
-            if ($count == 0) {
-                session()->flash('flash_notification', [
-                    'type' => 'warning',
-                    'message' => 'Anda tidak memiliki jadwal kerja hari ini!'
-                ]);
-                return view('satpam.journal-sub', $viewData);
-            } else{
-                $latestResponsibility = collect($UserResponsibleData)
-                    ->sortByDesc('tanggal') // urut menurun berdasarkan tanggal
-                    ->first();
-                $viewData['prefilledJadwal'] = $latestResponsibility ?: null;
-                return view('satpam.journal-sub', $viewData);
+            if ($isUserNextShift) {
+                // ambil semua approve status dari latest jurnal
+                $latestJournalApproveStatus = $data['allLatestJurnal']->pluck('approval_status')->unique()->toArray();
                 
-            }
-        }
-
-        $currentUserLokasiId = $todaysJadwal->lokasi_id;
-        $currentUserLokasi = Lokasi::find($currentUserLokasiId);
-        
-        $latestLokasiIds = collect($allLatestJurnal)->pluck('lokasi_id')->unique()->toArray();
-        // Cek apakah lokasi user ada di latest jurnal
-        if (!in_array($currentUserLokasiId, $latestLokasiIds)) {
-            // Jika lokasi user tidak ada di jurnal terbaru, langsung return view tanpa lanjut pengecekan
-            return view('satpam.journal-sub', $viewData);
-        }
-
-        // Cari latest jurnal yang lokasi_id-nya sama dengan lokasi user hari ini
-        $latestJurnalForCurrentLokasi = null;
-        foreach ($allLatestJurnal as $jurnal) {
-            if ($jurnal->lokasi_id == $currentUserLokasiId) {
-                $latestJurnalForCurrentLokasi = $jurnal;
-                break;
-            }
-        }
-        //dd($count);
-        // 9. Logika berdasarkan jumlah tanggung jawab user
-        if ($count == 0) {
-            // Tidak ada tanggung jawab, munculkan notifikasi berdasarkan latest jurnal lokasi user hari ini
-            if ($latestJurnalForCurrentLokasi) {
-                // Hitung next shift dan tanggalnya
-                $latestShiftIndex = $activeShifts->search(fn($shift) => $shift->id == $latestJurnalForCurrentLokasi->shift_id);
-                if ($latestShiftIndex === false) {
-                    // fallback jika shift tidak ditemukan
-                    $nextShift = $activeShifts->first();
-                    $nextDate = \Carbon\Carbon::parse($latestJurnalForCurrentLokasi->tanggal);
+                // Cek apakah SEMUA approval status = 1 (semua approved) dari latest jurnalnya
+                $AllJournalStatusApproved = empty($latestJournalApproveStatus) || 
+                    collect($latestJournalApproveStatus)->every(fn($status) => $status == 1);
+                if ($AllJournalStatusApproved) {
+                    // Semua sudah approved
+                    return view('kepala_satpam.journal-sub', $viewData);
                 } else {
-                    $nextShiftIndex = ($latestShiftIndex + 1) % $activeShifts->count();
-                    $nextShift = $activeShifts[$nextShiftIndex];
-                    $nextDate = \Carbon\Carbon::parse($latestJurnalForCurrentLokasi->tanggal);
-                    if ($nextShiftIndex == 0) {
-                        $nextDate->addDay();
-                    }
+                    // Ada yang belum approved, tampilkan warning
+                    session()->flash('flash_notification', [
+                        'type' => 'warning',
+                        'message' => 'Approve dahulu jurnal shift sebelumnya!'
+                    ]);
+                    return view('kepala_satpam.journal-sub', $viewData);
                 }
+            } else {
+                $nextShiftUserIds = $data['allLatestJurnal']->pluck('next_shift_user_id')->filter()->unique()->toArray();
+                $nextShiftUserNames = Satpam::whereIn('id', $nextShiftUserIds)->pluck('nama')->implode(', ');
 
-                $formattedDate = $nextDate->format('d F Y');
-                $lokasiObj = Lokasi::find($latestJurnalForCurrentLokasi->lokasi_id);
-                $lokasiNama = $lokasiObj ? $lokasiObj->nama_lokasi : 'Lokasi';
+                $message = !empty($nextShiftUserNames)
+                    ? "{$nextShiftUserNames} belum mengisi jurnal!"
+                    : "Jurnal shift terakhir belum menunjuk penanggung jawab berikutnya.";
 
-                $message = "Jurnal {$lokasiNama} - {$nextShift->nama_shift} ({$formattedDate}) belum disubmit.";
                 session()->flash('flash_notification', [
                     'type' => 'warning',
                     'message' => $message
                 ]);
+                return view('kepala_satpam.journal-sub', $viewData);
+            }
+        }
+        // Masih ada lokasi yang jurnalnya belum disubmit (count > 0)
+        else {
+            $isUserResponsible = $data['allLatestJurnal']->contains(function ($jurnal) use ($data) {
+                return $jurnal->user_id == $data['UserLoginNow'];
+            });
+
+            if ($isUserResponsible) {
+                return view('kepala_satpam.journal-sub', $viewData);
             } else {
-                // Jika tidak ada latest jurnal untuk lokasi user hari ini, fallback pesan umum
+                $responsibleUserIds = $data['allLatestJurnal']->pluck('user_id')->unique()->toArray();
+                $responsibleUserNames = Satpam::whereIn('id', $responsibleUserIds)->pluck('nama')->implode(', ');
+
+                $message = !empty($responsibleUserNames)
+                    ? "{$responsibleUserNames} belum mengisi jurnal!"
+                    : "Penanggung jawab jurnal belum mengisi jurnal.";
+
                 session()->flash('flash_notification', [
                     'type' => 'warning',
-                    'message' => 'Jurnal belum disubmit.'
+                    'message' => $message
                 ]);
+                return view('kepala_satpam.journal-sub', $viewData);
             }
-
-            return view('satpam.journal-sub', $viewData);
-        } elseif ($count == 1) {
-            // Hanya 1 tanggung jawab, isi prefilledJadwal dengan data tersebut
-            $viewData['prefilledJadwal'] = $UserResponsibleData[0];
-            return view('satpam.journal-sub', $viewData);
-        } else {
-            // Lebih dari 1 tanggung jawab
-            // Cari data tanggung jawab user yang lokasi_id-nya sama dengan lokasi hari ini
-            $responsibleAtCurrentLokasi = null;
-
-            // Jika $User ResponsibleData adalah koleksi, kita perlu cari yang lokasi_id = lokasi hari ini
-            // Jika $User ResponsibleData adalah objek tunggal, cek langsung
-            if (is_iterable($UserResponsibleData)) {
-                foreach ($UserResponsibleData as $jadwal) {
-                    if ($jadwal->lokasi_id == $currentUserLokasiId) {
-                        $responsibleAtCurrentLokasi = $jadwal;
-                        break;
-                    }
-                }
-            } else {
-                if ($UserResponsibleData->lokasi_id == $currentUserLokasiId) {
-                    $responsibleAtCurrentLokasi = $UserResponsibleData;
-                }
-            }
-
-            if ($responsibleAtCurrentLokasi) {
-                $viewData['prefilledJadwal'] = $responsibleAtCurrentLokasi;
-            } else {
-                // Jika tidak ada tanggung jawab di lokasi hari ini, fallback ke $User ResponsibleData
-                $viewData['prefilledJadwal'] = $UserResponsibleData;
-            }
-
-            return view('satpam.journal-sub', $viewData);
         }
     }
 
@@ -209,11 +150,12 @@ class JurnalSatpamController extends Controller
         $request->validate([
             'lokasi_id' => 'required|exists:lokasis,id',
             'shift_id' => 'required|exists:shifts,id',
+            'next_shift_user_id' => 'nullable|exists:satpams,id',
             'tanggal' => 'required|date',
-            'cuaca' => 'required|string',
-            'info_tambahan' => 'required|string',
+            'laporan_kegiatan' => 'required|string',
         ]);
 
+        // Cek jurnal double
         $isDuplicate = JurnalSatpam::where('tanggal', $request->tanggal)
             ->where('lokasi_id', $request->lokasi_id)
             ->where('shift_id', $request->shift_id)
@@ -226,32 +168,93 @@ class JurnalSatpamController extends Controller
             ], 422);
         }
 
-        if ($user->role === 'Satpam') {
-            $isCorrectJournal = Jadwal::where('tanggal', $request->tanggal)
-                ->where('lokasi_id', $request->lokasi_id)
-                ->where('shift_id', $request->shift_id)
-                ->where('user_id', $user->id)
-                ->exists();
-            if (!$isCorrectJournal) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Jurnal yang disubmit tidak sesuai jadwal Anda!'
-                ], 422);
+        
+        // Cek kesesuaian Jurnal yg disubmit
+        $data = $this->checking($user);
+        
+        //dd($data['count'], $data['latestShiftId'], $data['latestShiftJurnal']->next_shift_user_id);
+        if ($data['latestJurnalsPerLokasi']->isNotEmpty()) {
+            // Jika jurnal shift sudah lengkap
+            if ($data['count'] == 0) {
+                $activeShifts = Shift::where('is_active', 1)->orderBy('mulai_shift')->get();
+                $latestShiftIndex = $activeShifts->search(fn($shift) => $shift->id == $data['latestShiftJurnal']->shift_id);
+
+                if ($latestShiftIndex === false) {
+                    // fallback, misal lanjutkan saja
+                }
+
+                $nextShiftIndex = ($latestShiftIndex + 1) % $activeShifts->count();
+                $nextShift = $activeShifts[$nextShiftIndex];
+                $nextDate = \Carbon\Carbon::parse($data['latestShiftJurnal']->tanggal);
+                if ($nextShiftIndex == 0) {
+                    $nextDate->addDay();
+                }
+
+                $expectedDate = $nextDate->format('Y-m-d');
+                $dateMismatch = $request->tanggal != $expectedDate;
+                
+                if ($request->shift_id != $nextShift->id || $dateMismatch) {
+                    //dd($request->tanggal, $dateMismatch);
+                    $formattedExpectedDate = $nextDate->format('m-d-Y');
+                    $errorMessage = 'Isi jurnal untuk ' . $nextShift->nama_shift . ' pada tanggal ' . $formattedExpectedDate . '!';
+                    return response()->json([
+                        'success' => false,
+                        'message' => $errorMessage
+                    ], 422);
+                }
+            }
+            // Jika jurnal shift belum lengkap
+            else {
+                $responsibleUserIds = $data['allLatestJurnal']->pluck('user_id')->unique()->toArray();
+                $nextShiftUserIds = $data['allLatestJurnal']->pluck('next_shift_user_id')->filter()->unique()->toArray();
+                $latestJournalDate = $data['allLatestJurnal']->pluck('tanggal')->unique()->toArray();
+
+                if ($user->role == 'Kepala Satpam' || in_array($user->id, $responsibleUserIds)) {
+                    // Cek shift_id (perbandingan scalar vs scalar)
+                    $shiftMismatch = $request->shift_id != $data['latestShiftId'];
+                    
+                    // Cek next_shift_user_id (scalar vs array: gunakan in_array)
+                    $nextShiftMismatch = !in_array($request->next_shift_user_id, $nextShiftUserIds);
+
+                    // Cek tanggal (scalar vs array: gunakan in_array)
+                    $dateMismatch = empty($latestJournalDate) ? false : !in_array($request->tanggal, $latestJournalDate);
+                    
+                    // Jika salah satu mismatch (OR), return error
+                    if ($shiftMismatch || $nextShiftMismatch || $dateMismatch) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Isi jurnal dengan Shift, next Shift, dan Tanggal yang sesuai!'
+                        ], 422);
+                    }
+                } else {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Anda tidak bertanggung jawab untuk mengisi jurnal tersebut'
+                    ], 403);
+                }
             }
         }
 
-        // Daftar item isian yang harus dicek jika "yes"
-        $items = [
-            'kejadian_temuan', 'lembur', 'proyek_vendor', 'paket_dokumen',
-            'tamu_belum_keluar', 'karyawan_dinas_keluar', 'barang_keluar',
-            'kendaraan_dinas_keluar', 'lampu_mati'
-        ];
+        // Daftar item isian yang harus dicek radio button nya
+        $itemsYesNo = ['kejadian_temuan', 'lembur', 'proyek_vendor'];
+        $itemsMasukKeluar = ['barang_keluar', 'kendaraan_dinas_keluar'];
 
-        foreach ($items as $item) {
-            $isChecked = $request->input("is_$item");
-            if ($isChecked === '1' && !$request->filled($item)) {
+        
+        // Validasi untuk grup "Yes/No"
+        foreach ($itemsYesNo as $item) {
+            if ($request->input("is_$item") === '1' && !$request->filled($item)) {
                 return back()->withInput()->withErrors([
                     $item => 'Keterangan wajib diisi jika memilih Yes.'
+                ]);
+            }
+        }
+
+        // Validasi untuk grup "Masuk/Keluar"
+        foreach ($itemsMasukKeluar as $item) {
+            // $request->has() akan bernilai true jika 'Masuk' ATAU 'Keluar' dipilih
+            if ($request->has("is_$item") && !$request->filled($item)) {
+                return back()->withInput()->withErrors([
+                    $item => 'Keterangan wajib diisi jika Masuk / Keluar.'
                 ]);
             }
         }
@@ -262,27 +265,21 @@ class JurnalSatpamController extends Controller
             'user_id' => Auth::id(),
             'lokasi_id' => $request->lokasi_id,
             'shift_id' => $request->shift_id,
+            'next_shift_user_id' => $request->next_shift_user_id,
             'tanggal' => $request->tanggal,
-            'cuaca' => $request->cuaca,
-            'info_tambahan' => $request->info_tambahan,
+            'laporan_kegiatan' => $request->laporan_kegiatan,
             'is_kejadian_temuan' => $request->is_kejadian_temuan,
             'kejadian_temuan' => $request->kejadian_temuan,
             'is_lembur' => $request->is_lembur,
             'lembur' => $request->lembur,
             'is_proyek_vendor' => $request->is_proyek_vendor,
             'proyek_vendor' => $request->proyek_vendor,
-            'is_paket_dokumen' => $request->is_paket_dokumen,
-            'paket_dokumen' => $request->paket_dokumen,
-            'is_tamu_belum_keluar' => $request->is_tamu_belum_keluar,
-            'tamu_belum_keluar' => $request->tamu_belum_keluar,
-            'is_karyawan_dinas_keluar' => $request->is_karyawan_dinas_keluar,
-            'karyawan_dinas_keluar' => $request->karyawan_dinas_keluar,
             'is_barang_keluar' => $request->is_barang_keluar,
             'barang_keluar' => $request->barang_keluar,
             'is_kendaraan_dinas_keluar' => $request->is_kendaraan_dinas_keluar,
             'kendaraan_dinas_keluar' => $request->kendaraan_dinas_keluar,
-            'is_lampu_mati' => $request->is_lampu_mati,
-            'lampu_mati' => $request->lampu_mati,
+            'info_tambahan' => $request->info_tambahan,
+            'approval_status' => 0,
             'status' => $status,
         ]);
 
@@ -333,8 +330,9 @@ class JurnalSatpamController extends Controller
         $jurnal = JurnalSatpam::with(['lokasi', 'shift', 'uploads'])->findOrFail($id);
         $lokasis = Lokasi::where('is_active', 1)->get();
         $shifts = Shift::where('is_active', 1)->get();
+        $satpams = Satpam::where('role', 'Satpam')->get();
 
-        return view('journal-edit', compact('jurnal', 'lokasis', 'shifts'));
+        return view('kepala_satpam.journal-edit', compact('jurnal', 'lokasis', 'shifts', 'satpams'));
     }
 
     public function destroy($id)
@@ -357,20 +355,28 @@ class JurnalSatpamController extends Controller
         $jurnal = JurnalSatpam::findOrFail($id);
 
         $request->validate([
-            'cuaca' => 'required|string',
-            'info_tambahan' => 'required|string',
+            'laporan_kegiatan' => 'required|string',
         ]);
 
-        $items = [
-            'kejadian_temuan', 'lembur', 'proyek_vendor', 'paket_dokumen',
-            'tamu_belum_keluar', 'karyawan_dinas_keluar', 'barang_keluar',
-            'kendaraan_dinas_keluar', 'lampu_mati'
-        ];
+        // Daftar item isian yang harus dicek radio button nya
+        $itemsYesNo = ['kejadian_temuan', 'lembur', 'proyek_vendor'];
+        $itemsMasukKeluar = ['barang_keluar', 'kendaraan_dinas_keluar'];
 
-        foreach ($items as $item) {
+        // Validasi untuk grup "Yes/No"
+        foreach ($itemsYesNo as $item) {
             if ($request->input("is_$item") === '1' && !$request->filled($item)) {
                 return back()->withInput()->withErrors([
                     $item => 'Keterangan wajib diisi jika memilih Yes.'
+                ]);
+            }
+        }
+
+        // Validasi untuk grup "Masuk/Keluar"
+        foreach ($itemsMasukKeluar as $item) {
+            // $request->has() akan bernilai true jika 'Masuk' ATAU 'Keluar' dipilih
+            if ($request->has("is_$item") && !$request->filled($item)) {
+                return back()->withInput()->withErrors([
+                    $item => 'Keterangan wajib diisi jika Masuk / Keluar.'
                 ]);
             }
         }
@@ -380,7 +386,7 @@ class JurnalSatpamController extends Controller
         // --- CEK PERUBAHAN DATA ---
         $hasChanges = false;
         $updateData = [
-            'cuaca' => $request->cuaca,
+            'laporan_kegiatan' => $request->laporan_kegiatan,
             'info_tambahan' => $request->info_tambahan,
             'is_kejadian_temuan' => $request->is_kejadian_temuan,
             'kejadian_temuan' => $request->kejadian_temuan,
@@ -388,18 +394,10 @@ class JurnalSatpamController extends Controller
             'lembur' => $request->lembur,
             'is_proyek_vendor' => $request->is_proyek_vendor,
             'proyek_vendor' => $request->proyek_vendor,
-            'is_paket_dokumen' => $request->is_paket_dokumen,
-            'paket_dokumen' => $request->paket_dokumen,
-            'is_tamu_belum_keluar' => $request->is_tamu_belum_keluar,
-            'tamu_belum_keluar' => $request->tamu_belum_keluar,
-            'is_karyawan_dinas_keluar' => $request->is_karyawan_dinas_keluar,
-            'karyawan_dinas_keluar' => $request->karyawan_dinas_keluar,
             'is_barang_keluar' => $request->is_barang_keluar,
             'barang_keluar' => $request->barang_keluar,
             'is_kendaraan_dinas_keluar' => $request->is_kendaraan_dinas_keluar,
             'kendaraan_dinas_keluar' => $request->kendaraan_dinas_keluar,
-            'is_lampu_mati' => $request->is_lampu_mati,
-            'lampu_mati' => $request->lampu_mati,
             'status' => $newStatus,
         ];
 
@@ -479,4 +477,23 @@ class JurnalSatpamController extends Controller
         ]);
     }
 
+    public function updateApproval(Request $request, $id)
+    {
+        $jurnal = JurnalSatpam::findOrFail($id);
+        
+        // Validasi: Hanya next_shift_user_id yang boleh approve
+        if (Auth::id() != $jurnal->next_shift_user_id) {
+            return response()->json(['success' => false, 'message' => 'Anda tidak berhak approve jurnal ini.'], 403);
+        }
+        
+        // Update approval_status ke 1
+        $jurnal->update(['approval_status' => 1]);
+        
+        session()->flash('success', 'Jurnal berhasil di-approve');
+    
+        return response()->json([
+            'success' => true,
+            'redirect_url' => route('log.history')
+        ]);
+    }
 }
