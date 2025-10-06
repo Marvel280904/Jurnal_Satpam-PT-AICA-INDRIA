@@ -24,6 +24,10 @@
 .form-group, .form-group-row {
     margin-bottom: 20px;
 }
+.form-group-row {
+    display: flex;
+    align-items: flex-end;
+}
 
 .form-group label,
 .form-group-row label {
@@ -51,6 +55,11 @@
     padding: 10px;
     border-radius: 8px;
     border: 1px solid #ccc;
+}
+.form-group-row select,
+.form-group-row input[type="date"] {
+    display: flex;
+    align-items: flex-end;
 }
 
 .form-group textarea {

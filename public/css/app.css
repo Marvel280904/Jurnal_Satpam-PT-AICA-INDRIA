@@ -617,14 +617,20 @@ body, html {
         padding-left: 20px;
     }
 }
-
 @media (max-width: 720px) {
     .stat-card.loc h3 {
         margin-top: 0px;
         font-weight: 600;
     }
 }
-
+@media (max-width: 538px) {
+    .notif-panel {
+        transform: translate(-50%, -10px) scale(0.98);
+    }
+    .notif-panel.open {
+        transform: translate(-50%, 0) scale(1); 
+    }
+}
 /* ===========================
    END OF FILE
    =========================== */

@@ -112,18 +112,18 @@
 
 .save-btn {
     align-self: flex-end;
-    background-color: #ddd;
+    background-color: #4880FF;
     padding: 8px 16px;
     border: none;
     border-radius: 6px;
     font-weight: bold;
     cursor: pointer;
-    color: #333;
+    color: #ffffff;
     margin-top: 22px;
 }
 
 .save-btn:hover {
-    background-color: #bbb;
+    background-color: #3569d2;
 }
 
 /* ===========================
@@ -199,7 +199,76 @@
         text-align: center;
     }
 }
+@media screen and (max-width: 778px) {
+    .search-box input {
+        width: 170px;
+    }
+}
 
+@media (max-width: 750px) {
+    .main {
+        margin-left: 50px;
+    }
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 250px;
+        height: 100vh;
+        background-color: #B6C3CF;
+        padding-top: 20px;
+        z-index: 1000;
+    }
+    .sidebar.collapsed {
+        width: 40px; 
+        padding-left: 10px;
+        padding-right: 5px;
+        transition: width 0.3s ease-in-out;
+    }
+    .sidebar.collapsed .nav a span {
+        display: none; 
+    }
+    .sidebar.collapsed .logo {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 10px;
+        padding: 10px 0;
+    }
+    .sidebar.collapsed .logo img {
+        max-height: 10px; 
+        width: auto;
+    }
+    .sidebar .nav a {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        gap: 10px;
+        text-decoration: none;
+        border-radius: 5px;
+        margin-bottom: 10px;
+        font-weight: 500;
+        color: black;
+    }
+    .sidebar .nav a i {
+        font-size: 18px;
+    }
+    .sidebar .nav a.active,
+    .sidebar .nav a:hover {
+        background-color: #384458;
+        color: white;
+    }
+    .search-box {
+        width: 200px;
+    }
+    .search-box input {
+        width: 200px;
+    }
+    .profile-section {
+        padding: 0px;
+    }
+}
 @media (max-width: 538px) {
     .form-group input {
         width: 92%;
@@ -207,5 +276,22 @@
     }
     .profile-container {
         padding: 30px 20px 30px 30px;
+    }
+    .topbar1 {
+        justify-content: center;
+        justify-items: center;
+        justify-self: center;
+        margin-left: 5px;
+        padding: 10px 10px;
+    }
+    .search-box {
+        width: 130px;
+    }
+    .search-box input {
+        width: 140px;
+    }
+    .topbar1 .notif {
+        margin: 0px;
+        padding-right: 7px;
     }
 }

@@ -318,6 +318,14 @@ body, html {
         font-weight: 600;
     }
 }
+@media screen and (max-width: 778px) {
+    .top-panels {
+        flex-direction: column;
+    }
+    .search-box input {
+        width: 170px;
+    }
+}
 @media (max-width: 750px) {
     .stats-manage {
         flex-wrap: wrap;
@@ -325,6 +333,70 @@ body, html {
     .stat-card.loc h3 {
         margin-top: 20px;
         font-weight: 600;
+    }
+    .main {
+        margin-left: 50px;
+        height: calc(100vh - 20px);
+        overflow-y: auto;
+    }
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 250px;
+        height: 100vh;
+        background-color: #B6C3CF;
+        padding-top: 20px;
+        z-index: 1000;
+    }
+    .sidebar.collapsed {
+        width: 40px; 
+        padding-left: 10px;
+        padding-right: 5px;
+        transition: width 0.3s ease-in-out;
+    }
+    .sidebar.collapsed .nav a span {
+        display: none; 
+    }
+    .sidebar.collapsed .logo {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 10px;
+        padding: 10px 0;
+    }
+    .sidebar.collapsed .logo img {
+        max-height: 10px; 
+        width: auto;
+    }
+    .sidebar .nav a {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        gap: 10px;
+        text-decoration: none;
+        border-radius: 5px;
+        margin-bottom: 10px;
+        font-weight: 500;
+        color: black;
+    }
+    .sidebar .nav a i {
+        font-size: 18px;
+    }
+    .sidebar .nav a.active,
+    .sidebar .nav a:hover {
+        background-color: #384458;
+        color: white;
+    }
+    .search-box {
+        width: 200px;
+    }
+    .search-box input{
+        width: 200px;
+    }
+    .profile-section{
+        padding: 0px;
     }
 }
 @media (max-width: 720px) {
