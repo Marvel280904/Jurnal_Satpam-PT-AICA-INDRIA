@@ -73,10 +73,12 @@ class LogHistoryController extends Controller
 
         $jurnals = $query->orderByDesc('id')->get(); // Collection -> forelse @empty bisa
         $jurnals->each(function ($jurnal) {
-            $jurnal->isApprove = $jurnal->approval_status == 1;
+            $jurnal->isApprove = $jurnal->status == 'waiting';
+            $jurnal->isPending = $jurnal->status == 'pending';
+            $jurnal->responsibleUser  = $jurnal->satpam;
         });
 
-        return view('kepala_satpam.log-history', compact('jurnals','lokasis','shifts'));
+        return view('kepala_satpam.log-history', compact('jurnals','lokasis','shifts', 'user'));
     }
 
     public function updateStatus(Request $request, $id)

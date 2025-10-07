@@ -9,6 +9,8 @@
     <div id="top-anchor" class="journal-container">
         <h1>Edit Journal Submission</h1>
 
+        <div id="errorMessage" class="flash-message error" style="display: none;"></div>
+
         <form id="jurnalForm" action="{{ route('jurnal.update', $jurnal->id) }}" method="POST" enctype="multipart/form-data">
             @csrf
             @method('PUT')
@@ -16,7 +18,7 @@
             <div class="form-group-row">
                 <div>
                     <label>Lokasi <i class="bi bi-asterisk"></i> </label>
-                    <select name="lokasi_id" id="lokasiSelect" required disabled>
+                    <select name="lokasi_id" id="lokasiSelect" required>
                         <option value="" disabled selected>-- Pilih Lokasi --</option>
                         @foreach($lokasis as $lokasi)
                             <option value="{{ $lokasi->id }}" {{ $jurnal->lokasi_id == $lokasi->id ? 'selected' : '' }}>
@@ -28,7 +30,7 @@
 
                 <div>
                     <label>Shift <i class="bi bi-asterisk"></i> </label>
-                    <select name="shift_id" id="shiftSelect" required disabled>
+                    <select name="shift_id" id="shiftSelect" required>
                         <option value="" disabled selected>-- Pilih Shift --</option>
                         @foreach($shifts as $shift)
                             <option value="{{ $shift->id }}" {{ $jurnal->shift_id == $shift->id ? 'selected' : '' }}>
@@ -40,7 +42,7 @@
 
                 <div>
                     <label>Next Shift <i class="bi bi-asterisk"></i> </label>
-                    <select name="next_shift_user_id" id="nextShiftSelect" required disabled>
+                    <select name="next_shift_user_id" id="nextShiftSelect" required>
                         <option value="" disabled selected>-- Pilih Grup --</option>
                         {{-- Loop semua satpam yang dikirim dari controller --}}
                         @foreach($satpams as $satpam)
@@ -53,7 +55,7 @@
 
                 <div>
                     <label>Tanggal <i class="bi bi-asterisk"></i> </label>
-                    <input type="date" name="tanggal" value="{{ \Carbon\Carbon::parse($jurnal->tanggal)->format('Y-m-d') }}" required disabled>
+                    <input type="date" name="tanggal" value="{{ \Carbon\Carbon::parse($jurnal->tanggal)->format('Y-m-d') }}" required>
                 </div>
 
             </div>
@@ -102,7 +104,7 @@
             @endforeach
 
             <div class="form-group">
-                <label>Informasi Tambahan <i class="bi bi-asterisk"></i> </label>
+                <label>Informasi Tambahan</label>
                 <textarea name="info_tambahan" placeholder="Tidak wajib diisi">{{ $jurnal->info_tambahan }}</textarea>
             </div>
 

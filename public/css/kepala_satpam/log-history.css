@@ -117,7 +117,6 @@ th {
 td .action-content {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     gap: 7px;
 }
 
@@ -141,15 +140,15 @@ td .action-content .view-detail-btn {
     text-decoration: none;
     flex-shrink: 0;
 }
-
+td .action-content .view-detail-btn{
+    margin-left: 10px;
+}
 td .action-content .view-detail-btn i {
     margin-left: 0px;
 }
-
 td .action-content form {
     display: inline;
 }
-
 td .action-content form button {
     all: unset;
     cursor: pointer;
@@ -202,6 +201,7 @@ td .action-content .download-btn i { color: #eab308; }
 .badge.green { background-color: #b2f0d3; color: #007e49; }
 .badge.red { background-color: #ffc6c6; color: #a10000; }
 .badge.yellow { background-color: #fff8b5; color: #9f8b00; }
+.badge.grey { background-color: #c7c7c7; color: #949494; }
 
 /* ===========================
    4. POPUP & MODAL COMPONENTS

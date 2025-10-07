@@ -63,7 +63,6 @@
                             <th class="col-name">Name</th>
                             <th class="col-role">Role</th>
                             <th class="col-updated">Updated</th>
-                            <th class="col-nextShift">Next Shift Approval</th>
                             <th class="col-status">Journal Status</th>
                         </tr>
                     </thead>
@@ -76,13 +75,6 @@
                                 <td>{{ $jurnal->satpam->nama ?? '-' }}</td>
                                 <td>{{ $jurnal->satpam->role ?? '-' }}</td>
                                 <td>{{ $jurnal->updatedBySatpam->nama ?? '-' }}</td>
-                                <td>
-                                    @if($jurnal->approval_status == 1)
-                                        <span class="badge green">Approve</span>
-                                    @else
-                                        <span class="badge yellow">Waiting</span>
-                                    @endif
-                                </td>
                                 <td>
                                     <div class="action-content">
                                         @php $status = strtolower($jurnal->status); @endphp
@@ -107,8 +99,10 @@
                                                 <span class="badge green">Approve</span>
                                             @elseif($status === 'reject')
                                                 <span class="badge red">Reject</span>
-                                            @else
+                                            @elseif($status === 'waiting')
                                                 <span class="badge yellow">Waiting</span>
+                                            @else
+                                                <span class="badge grey">Pending</span>
                                             @endif
                                         @endif
                                         
@@ -119,9 +113,11 @@
                                             <i class="bi bi-eye-slash-fill view-icon"></i>
                                         </a>
 
-                                        <a href="{{ route('jurnal.edit', $jurnal->id) }}" class="edit-btn" title="Edit Jurnal">
-                                            <i class="bi bi-pencil-square" style="font-size:18px; color: #007bff;"></i>
-                                        </a>
+                                        @if (($role === 'Kepala Satpam' || $user->id == $jurnal->responsibleUser ->id) && $jurnal->isPending)
+                                            <a href="{{ route('jurnal.edit', $jurnal->id) }}" class="edit-btn" title="Edit Jurnal">
+                                                <i class="bi bi-pencil-square" style="font-size:18px; color: #007bff;"></i>
+                                            </a>
+                                        @endif
                                         
                                         @if ($role === 'Kepala Satpam')
                                             <form action="{{ route('jurnal.destroy', $jurnal->id) }}" method="POST" style="display: inline;" class="delete-form">

@@ -86,12 +86,12 @@ class JurnalSatpamController extends Controller
 
             if ($isUserNextShift) {
                 // ambil semua approve status dari latest jurnal
-                $latestJournalApproveStatus = $data['allLatestJurnal']->pluck('approval_status')->unique()->toArray();
+                $latestJournalStatus  = $data['allLatestJurnal']->pluck('status')->unique()->toArray();
                 
                 // Cek apakah SEMUA approval status = 1 (semua approved) dari latest jurnalnya
-                $AllJournalStatusApproved = empty($latestJournalApproveStatus) || 
-                    collect($latestJournalApproveStatus)->every(fn($status) => $status == 1);
-                if ($AllJournalStatusApproved) {
+                $AllJournalStatusWaiting  = empty($latestJournalStatus) || 
+                    collect($latestJournalStatus)->every(fn($status) => $status == 'waiting');
+                if ($AllJournalStatusWaiting) {
                     // Semua sudah approved
                     return view('kepala_satpam.journal-sub', $viewData);
                 } else {
@@ -260,7 +260,7 @@ class JurnalSatpamController extends Controller
         }
 
         // Simpan data jurnal ke database
-        $status = Auth::user()->role === 'Kepala Satpam' ? 'Approve' : 'Waiting';
+        $status = Auth::user()->role === 'Kepala Satpam' ? 'approve' : 'pending';
         $jurnal = JurnalSatpam::create([
             'user_id' => Auth::id(),
             'lokasi_id' => $request->lokasi_id,
@@ -279,7 +279,6 @@ class JurnalSatpamController extends Controller
             'is_kendaraan_dinas_keluar' => $request->is_kendaraan_dinas_keluar,
             'kendaraan_dinas_keluar' => $request->kendaraan_dinas_keluar,
             'info_tambahan' => $request->info_tambahan,
-            'approval_status' => 0,
             'status' => $status,
         ]);
 
@@ -355,6 +354,10 @@ class JurnalSatpamController extends Controller
         $jurnal = JurnalSatpam::findOrFail($id);
 
         $request->validate([
+            'lokasi_id' => 'required|exists:lokasis,id',
+            'shift_id' => 'required|exists:shifts,id',
+            'next_shift_user_id' => 'nullable|exists:satpams,id',
+            'tanggal' => 'required|date',
             'laporan_kegiatan' => 'required|string',
         ]);
 
@@ -381,11 +384,13 @@ class JurnalSatpamController extends Controller
             }
         }
 
-        $newStatus = Auth::user()->role === 'Kepala Satpam' ? 'approve' : 'waiting';
-
         // --- CEK PERUBAHAN DATA ---
         $hasChanges = false;
         $updateData = [
+            'lokasi_id' => $request->lokasi_id, 
+            'shift_id' => $request->shift_id,  
+            'next_shift_user_id' => $request->next_shift_user_id, 
+            'tanggal' => $request->tanggal,
             'laporan_kegiatan' => $request->laporan_kegiatan,
             'info_tambahan' => $request->info_tambahan,
             'is_kejadian_temuan' => $request->is_kejadian_temuan,
@@ -398,7 +403,6 @@ class JurnalSatpamController extends Controller
             'barang_keluar' => $request->barang_keluar,
             'is_kendaraan_dinas_keluar' => $request->is_kendaraan_dinas_keluar,
             'kendaraan_dinas_keluar' => $request->kendaraan_dinas_keluar,
-            'status' => $newStatus,
         ];
 
         foreach ($updateData as $field => $value) {
@@ -486,8 +490,8 @@ class JurnalSatpamController extends Controller
             return response()->json(['success' => false, 'message' => 'Anda tidak berhak approve jurnal ini.'], 403);
         }
         
-        // Update approval_status ke 1
-        $jurnal->update(['approval_status' => 1]);
+        // Update status jadi Waiting
+        $jurnal->update(['status' => 'waiting']);
         
         session()->flash('success', 'Jurnal berhasil di-approve');
     

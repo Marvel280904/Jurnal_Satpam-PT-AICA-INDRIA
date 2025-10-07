@@ -40,9 +40,8 @@ class AppServiceProvider extends ServiceProvider
                 $lokasiNameById = Lokasi::pluck('nama_lokasi', 'id');
                 $shiftNameById = Shift::pluck('nama_shift', 'id');
 
-                // 1) REMINDER: PERSETUJUAN JURNAL (STATUS WAITING & approval_status = 1)
+                // 1) REMINDER: PERSETUJUAN JURNAL (STATUS WAITING)
                 $waitingCount = JurnalSatpam::where('status', 'waiting')
-                    ->where('approval_status', 1)
                     ->count();
                 if ($waitingCount > 0) {
                     $reminders[] = [
@@ -75,84 +74,86 @@ class AppServiceProvider extends ServiceProvider
                     return $jurnal->shift_id == $latestShiftId;
                 })->values();
 
-                $count = $totalLokasiCount - $allLatestJurnal->count();
+                if ($allLatestJurnal->isNotEmpty()) {
+                    $count = $totalLokasiCount - $allLatestJurnal->count();
 
-                $pendingJournals = collect();
-                $activeShifts = Shift::where('is_active', 1)->orderBy('mulai_shift')->get();
-                $latestShiftIndex = $activeShifts->search(fn($shift) => $shift->id == $latestShiftId);
+                    $pendingJournals = collect();
+                    $activeShifts = Shift::where('is_active', 1)->orderBy('mulai_shift')->get();
+                    $latestShiftIndex = $activeShifts->search(fn($shift) => $shift->id == $latestShiftId);
 
-                if ($latestShiftIndex !== false) {
-                    $nextShiftIndex = ($latestShiftIndex + 1) % $activeShifts->count();
-                    $nextShift = $activeShifts[$nextShiftIndex];
-                    $nextDate = \Carbon\Carbon::parse($latestShiftJurnal->tanggal);
-                    if ($nextShiftIndex == 0) {
-                        $nextDate->addDay();
+                    if ($latestShiftIndex !== false) {
+                        $nextShiftIndex = ($latestShiftIndex + 1) % $activeShifts->count();
+                        $nextShift = $activeShifts[$nextShiftIndex];
+                        $nextDate = \Carbon\Carbon::parse($latestShiftJurnal->tanggal);
+                        if ($nextShiftIndex == 0) {
+                            $nextDate->addDay();
+                        }
+                        $expectedNextDate = $nextDate->format('Y-m-d');
+                    } else {
+                        $nextShift = $activeShifts->first();
+                        $expectedNextDate = $today;
                     }
-                    $expectedNextDate = $nextDate->format('Y-m-d');
-                } else {
-                    $nextShift = $activeShifts->first();
-                    $expectedNextDate = $today;
-                }
 
-                $responsibleUserIds = $allLatestJurnal->pluck('user_id')->unique()->toArray();
-                $nextShiftUserIds = $allLatestJurnal->pluck('next_shift_user_id')->filter()->unique()->toArray();
+                    $responsibleUserIds = $allLatestJurnal->pluck('user_id')->unique()->toArray();
+                    $nextShiftUserIds = $allLatestJurnal->pluck('next_shift_user_id')->filter()->unique()->toArray();
 
-                $allUserIds = array_unique(array_merge($responsibleUserIds, $nextShiftUserIds));
-                $userDetails = Satpam::whereIn('id', $allUserIds)->pluck('nama', 'id')->toArray();
+                    $allUserIds = array_unique(array_merge($responsibleUserIds, $nextShiftUserIds));
+                    $userDetails = Satpam::whereIn('id', $allUserIds)->pluck('nama', 'id')->toArray();
 
-                $defaultResponsibleId = !empty($responsibleUserIds) ? $responsibleUserIds[0] : null;
-                $defaultResponsibleName = $defaultResponsibleId ? ($userDetails[$defaultResponsibleId] ?? 'User  tidak dikenal') : '-';
+                    $defaultResponsibleId = !empty($responsibleUserIds) ? $responsibleUserIds[0] : null;
+                    $defaultResponsibleName = $defaultResponsibleId ? ($userDetails[$defaultResponsibleId] ?? 'User  tidak dikenal') : '-';
 
-                $defaultNextId = !empty($nextShiftUserIds) ? $nextShiftUserIds[0] : null;
-                $defaultNextName = $defaultNextId ? ($userDetails[$defaultNextId] ?? 'User  tidak dikenal') : '-';
+                    $defaultNextId = !empty($nextShiftUserIds) ? $nextShiftUserIds[0] : null;
+                    $defaultNextName = $defaultNextId ? ($userDetails[$defaultNextId] ?? 'User  tidak dikenal') : '-';
 
-                if ($count == 0) {
-                    foreach ($allLokasi as $lokasi) {
-                        $pendingJournals->push((object)[
-                            'lokasi_id' => $lokasi->id,
-                            'lokasi' => $lokasi->nama_lokasi,
-                            'shift' => $nextShift->nama_shift,
-                            'user_id' => $defaultNextId,
-                            'user' => $defaultNextName,
-                            'status' => 'Belum mengisi',
-                        ]);
+                    if ($count == 0) {
+                        foreach ($allLokasi as $lokasi) {
+                            $pendingJournals->push((object)[
+                                'lokasi_id' => $lokasi->id,
+                                'lokasi' => $lokasi->nama_lokasi,
+                                'shift' => $nextShift->nama_shift,
+                                'user_id' => $defaultNextId,
+                                'user' => $defaultNextName,
+                                'status' => 'Belum mengisi',
+                            ]);
+                        }
+                    } else {
+                        $submittedLokasiIds = $allLatestJurnal->pluck('lokasi_id')->unique();
+                        $pendingCurrentLokasi = $allLokasi->filter(fn($lokasi) => !$submittedLokasiIds->contains($lokasi->id));
+
+                        $currentShift = Shift::find($latestShiftId);
+                        foreach ($pendingCurrentLokasi as $lokasi) {
+                            $pendingJournals->push((object)[
+                                'lokasi_id' => $lokasi->id,
+                                'lokasi' => $lokasi->nama_lokasi,
+                                'shift' => $currentShift ? $currentShift->nama_shift : '-',
+                                'user_id' => $defaultResponsibleId,
+                                'user' => $defaultResponsibleName,
+                                'status' => 'Belum dikumpulkan',
+                            ]);
+                        }
+                        foreach ($allLokasi as $lokasi) {
+                            $pendingJournals->push((object)[
+                                'lokasi_id' => $lokasi->id,
+                                'lokasi' => $lokasi->nama_lokasi,
+                                'shift' => $nextShift->nama_shift,
+                                'user_id' => $defaultNextId,
+                                'user' => $defaultNextName,
+                                'status' => 'Belum dikumpulkan',
+                            ]);
+                        }
                     }
-                } else {
-                    $submittedLokasiIds = $allLatestJurnal->pluck('lokasi_id')->unique();
-                    $pendingCurrentLokasi = $allLokasi->filter(fn($lokasi) => !$submittedLokasiIds->contains($lokasi->id));
 
-                    $currentShift = Shift::find($latestShiftId);
-                    foreach ($pendingCurrentLokasi as $lokasi) {
-                        $pendingJournals->push((object)[
-                            'lokasi_id' => $lokasi->id,
-                            'lokasi' => $lokasi->nama_lokasi,
-                            'shift' => $currentShift ? $currentShift->nama_shift : '-',
-                            'user_id' => $defaultResponsibleId,
-                            'user' => $defaultResponsibleName,
-                            'status' => 'Belum dikumpulkan',
-                        ]);
+                    // Buat reminder dari pendingJournals (batasi 5)
+                    foreach ($pendingJournals->take(5) as $entry) {
+                        $reminders[] = [
+                            'key' => 'pending-' . $entry->lokasi_id . '-' . $entry->shift,
+                            'icon' => 'bi-journal-plus',
+                            'title' => 'Journal Submission',
+                            'desc' => "Jurnal untuk {$entry->lokasi} - {$entry->shift} - {$entry->user} belum disubmit.",
+                            'url' => route('jurnal.submission'),
+                        ];
                     }
-                    foreach ($allLokasi as $lokasi) {
-                        $pendingJournals->push((object)[
-                            'lokasi_id' => $lokasi->id,
-                            'lokasi' => $lokasi->nama_lokasi,
-                            'shift' => $nextShift->nama_shift,
-                            'user_id' => $defaultNextId,
-                            'user' => $defaultNextName,
-                            'status' => 'Belum dikumpulkan',
-                        ]);
-                    }
-                }
-
-                // Buat reminder dari pendingJournals (batasi 5)
-                foreach ($pendingJournals->take(5) as $entry) {
-                    $reminders[] = [
-                        'key' => 'pending-' . $entry->lokasi_id . '-' . $entry->shift,
-                        'icon' => 'bi-journal-plus',
-                        'title' => 'Journal Submission',
-                        'desc' => "Jurnal untuk {$entry->lokasi} - {$entry->shift} - {$entry->user} belum disubmit.",
-                        'url' => route('jurnal.submission'),
-                    ];
                 }
 
                 $view->with([
@@ -209,7 +210,7 @@ class AppServiceProvider extends ServiceProvider
                 })->values();
 
                 foreach ($allLatestJurnal as $jurnal) {
-                    if ($jurnal->approval_status == 0 && $jurnal->next_shift_user_id == $user->id) {
+                    if ($jurnal->status == 'pending' && $jurnal->next_shift_user_id == $user->id) {
                         $dateStr = Carbon::parse($jurnal->tanggal)->format('d F Y');
                         $lokasiNama = $jurnal->lokasi->nama_lokasi ?? $lokasiNameById[$jurnal->lokasi_id] ?? '-';
                         $shiftNama = $jurnal->shift->nama_shift ?? $shiftNameById[$jurnal->shift_id] ?? '-';

@@ -30,9 +30,7 @@
     <div id="top-anchor" class="journal-container">
         <h1>Journal Submission</h1>
 
-        <div id="errorMessage" class="flash-message error" style="display: none;">
-            
-        </div>
+        <div id="errorMessage" class="flash-message error" style="display: none;"></div>
 
         <form id="jurnalForm" enctype="multipart/form-data">
             @csrf
@@ -103,7 +101,7 @@
 
             @foreach($itemsYesNo as $key => $label)
                 <div class="form-group">
-                    <label>{{ $label }}</label>
+                    <label>{{ $label }} <i class="bi bi-asterisk"></i></label>
                     <div class="radio-group">
                         <label><input type="radio" name="is_{{ $key }}" value="1" required> Yes</label>
                         <label><input type="radio" name="is_{{ $key }}" value="0" required> No</label>
@@ -121,7 +119,7 @@
 
             @foreach($itemsMasukKeluar as $key => $label)
                 <div class="form-group">
-                    <label>{{ $label }} <i class="bi bi-asterisk"></i> </label>
+                    <label>{{ $label }}</label>
                     <div class="radio-group">
                         <label><input type="radio" name="is_{{ $key }}" value="1"> Masuk</label>
                         <label><input type="radio" name="is_{{ $key }}" value="0"> Keluar</label>
@@ -131,7 +129,7 @@
             @endforeach
 
             <div class="form-group">
-                <label>Informasi Tambahan <i class="bi bi-asterisk"></i> </label>
+                <label>Informasi Tambahan</label>
                 <textarea name="info_tambahan" placeholder="Tidak wajib diisi"></textarea>
             </div>
 
