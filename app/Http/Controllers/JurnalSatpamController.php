@@ -90,7 +90,7 @@ class JurnalSatpamController extends Controller
                 
                 // Cek apakah SEMUA approval status = 1 (semua approved) dari latest jurnalnya
                 $AllJournalStatusWaiting  = empty($latestJournalStatus) || 
-                    collect($latestJournalStatus)->every(fn($status) => $status == 'waiting');
+                    collect($latestJournalStatus)->every(fn($status) => $status != 'pending');
                 if ($AllJournalStatusWaiting) {
                     // Semua sudah approved
                     return view('kepala_satpam.journal-sub', $viewData);
