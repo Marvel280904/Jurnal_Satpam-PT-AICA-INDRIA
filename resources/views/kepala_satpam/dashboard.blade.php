@@ -69,11 +69,11 @@
             <div class="jurnal-status-panel">
                 <h3>Status Pengisian Jurnal</h3>
                 <div class="scroll-panel">
-                    @forelse($jurnalToday as $jurnal)
+                    @forelse($latestJurnals as $jurnal)
                         <div class="jurnal-card">
                             <div class="jurnal-info">
                                 <strong>Jurnal - {{ $jurnal->shift->nama_shift }}</strong><br>
-                                <small>Terakhir disimpan: {{ \Carbon\Carbon::parse($jurnal->created_at)->format('H:i') }}</small>
+                                <small>Terakhir disimpan: {{ \Carbon\Carbon::parse($jurnal->created_at)->format('M d, Y') }}</small>
                             </div>
 
                             <div class="jurnal-info-loc">
@@ -83,7 +83,7 @@
 
                             <div class="jurnal-info-status">
                                 <span class="badge {{ strtolower($jurnal->status) }}">
-                                    {{ ucfirst($jurnal->status == 'reject' ? 'Reject' : $jurnal->status) }}
+                                    {{ ucfirst($jurnal->status) }}
                                 </span>
                             </div>
                         </div>

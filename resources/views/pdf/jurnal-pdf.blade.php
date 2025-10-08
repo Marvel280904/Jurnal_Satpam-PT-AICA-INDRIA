@@ -146,18 +146,11 @@
     <div class="flex-info">
         <div class="left-info">
             <table>
+                <tr><td>Tanggal</td><td>: {{ \Carbon\Carbon::parse($jurnal->tanggal)->format('F d, Y') }}</td></tr>
                 <tr><td>Pengisi</td><td>: {{ $jurnal->satpam->nama ?? '-' }}</td></tr>
                 <tr><td>Lokasi</td><td>: {{ $jurnal->lokasi->nama_lokasi ?? '-' }}</td></tr>
                 <tr><td>Shift</td><td>: {{ $jurnal->shift->nama_shift ?? '-' }}</td></tr>
                 <tr><td>Next Shift</td><td>: {{ $jurnal->nextShiftUser->nama ?? '-' }}</td></tr>
-                <tr><td>Tanggal</td><td>: {{ \Carbon\Carbon::parse($jurnal->tanggal)->format('F d, Y') }}</td></tr>
-                <tr><td>Next Shift Approval</td><td>: 
-                    @if($jurnal->approval_status == 1)
-                        Approve
-                    @else
-                        Waiting
-                    @endif
-                </td></tr>
                 <tr><td>Journal Status</td><td>: {{ ucfirst($jurnal->status) }}</td></tr>
             </table>
         </div>
@@ -222,15 +215,6 @@
         <tr>
             <td></td>
             <td>{{ $jurnal->barang_keluar ?? '-' }}</td>
-        </tr>
-
-        <tr>
-            <td>Kendaraan Dinas Luar</td>
-            <td>{{ $jurnal->is_kendaraan_dinas_keluar == 1 ? 'Yes' : ($jurnal->is_kendaraan_dinas_keluar == 0 ? 'No' : '-') }}</td>
-        </tr>
-        <tr>
-            <td></td>
-            <td>{{ $jurnal->kendaraan_dinas_keluar ?? '-' }}</td>
         </tr>
 
         <tr>

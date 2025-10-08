@@ -28,25 +28,13 @@ class DashboardController extends Controller
         // Ambil filter dari request berdasarkan 'lokasi_id'
         $lokasiFilterId = $request->input('lokasi_id', $defaultLokasiId);
 
-        // Status Pengisian Jurnal (hari ini) - tetap seperti asli
-        if ($user->role === 'Kepala Satpam') {
-            $jurnalToday = JurnalSatpam::with(['satpam', 'lokasi', 'shift'])
-                ->whereDate('tanggal', $today)
-                ->get();
-        } else {
-            $jurnalToday = JurnalSatpam::with(['satpam', 'lokasi', 'shift'])
-                ->whereDate('tanggal', $today)
-                ->where('user_id', $user->id)
-                ->get();
-        }
-
         // History Pengisian Jurnal (5 terakhir) - tetap seperti asli
         $jurnalHistory = JurnalSatpam::with(['satpam', 'lokasi', 'shift'])
             ->latest()
             ->take(5)
             ->get();
 
-        // Tambahan Poin 1: Logika checking untuk latest jurnal overall (tidak terikat hari ini)
+        // Logika checking untuk latest jurnal overall (tidak terikat hari ini)
         $allLokasi = Lokasi::where('is_active', 1)->get();
         $totalLokasiCount = $allLokasi->count();
 
@@ -79,6 +67,31 @@ class DashboardController extends Controller
             'allLatestJurnal',
             'count'
         );
+
+        // Latest Jurnal (satu per lokasi, paling terbaru berdasarkan lokasi)
+        if ($user->role === 'Kepala Satpam') {
+            // Untuk Kepala: Semua latest per lokasi, diurutkan terbaru
+            $latestJurnals = $latestJurnalsPerLokasi->sortByDesc('created_at');
+        } else {
+            // Untuk Satpam: Hanya latest per lokasi yang diisi oleh user login
+            $latestJurnals = collect(); // Buat koleksi kosong untuk menampung hasilnya.
+    
+            // Loop untuk setiap lokasi yang aktif
+            foreach ($lokasis as $lokasi) {
+                // Cari satu jurnal paling baru di lokasi ini DAN yang dibuat oleh user yang sedang login
+                $latestJurnalForUserInLocation = JurnalSatpam::where('lokasi_id', $lokasi->id)
+                    ->where('user_id', $user->id)
+                    ->orderBy('created_at', 'desc')
+                    ->first();
+
+                // Jika ditemukan, tambahkan ke koleksi
+                if ($latestJurnalForUserInLocation) {
+                    $latestJurnals->push($latestJurnalForUserInLocation);
+                }
+            }
+            // Urutkan hasilnya berdasarkan waktu pembuatan terbaru
+            $latestJurnals = $latestJurnals->sortByDesc('created_at');
+        }
 
         // Tambahan Adaptasi Poin 2 & Logika Poin 3-4: Hitung next shift dan pending journals (untuk display)
         $pendingJournals = collect(); // Collection untuk view
@@ -159,7 +172,7 @@ class DashboardController extends Controller
                         'user_id' => $defaultResponsibleId,
                         'user' => $defaultResponsibleName,
                         'foto' => $defaultResponsibleFoto,
-                        'status' => 'Belum dikumpulkan'
+                        'status' => 'Belum mengisi'
                     ];
                     $pendingJournals->push($entry);
                 }
@@ -173,7 +186,7 @@ class DashboardController extends Controller
                         'user_id' => $defaultNextId,
                         'user' => $defaultNextName,
                         'foto' => $defaultNextFoto,
-                        'status' => 'Belum dikumpulkan'
+                        'status' => 'Belum mengisi'
                     ];
                     $pendingJournals->push($entry);
                 }
@@ -222,7 +235,7 @@ class DashboardController extends Controller
         // Return view
         return view('kepala_satpam.dashboard', compact(
             'pendingJournals',
-            'jurnalToday',
+            'latestJurnals',
             'jurnalHistory',
             'lokasis',
             'lokasiFilterId',

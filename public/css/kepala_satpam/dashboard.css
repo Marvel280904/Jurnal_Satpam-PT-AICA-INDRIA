@@ -117,6 +117,9 @@
     padding: 10px 0;
     gap: 10px;
 }
+.jurnal-info-loc i{
+    color:rgb(215, 8, 8);
+}
 
 /* ===========================
    3. HISTORY PANEL SECTION
@@ -165,6 +168,7 @@
 .badge.approve { background-color: #28a745; color: #fff; }
 .badge.reject { background-color: #dc3545; color: #fff; }
 .badge.waiting { background-color: #ffc107; color: #000; }
+.badge.pending { background-color: #d3d3d3; color: #949494; }
 .badge.pink { background-color: #f8c1e1; color: #333; }
 .badge.blue { background-color: #d0e2ff; color: #333; }
 

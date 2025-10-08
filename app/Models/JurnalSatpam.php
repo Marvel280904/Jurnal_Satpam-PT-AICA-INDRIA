@@ -10,8 +10,8 @@ class JurnalSatpam extends Model
         'tanggal', 'lokasi_id', 'shift_id', 'user_id', 'next_shift_user_id',
         'laporan_kegiatan', 'is_kejadian_temuan', 'kejadian_temuan',
         'is_lembur', 'lembur', 'is_proyek_vendor', 'proyek_vendor',
-        'is_barang_keluar', 'barang_keluar', 'is_kendaraan_dinas_keluar', 
-        'kendaraan_dinas_keluar', 'info_tambahan', 'approval_status', 'status', 'updated_by'
+        'is_barang_keluar', 'barang_keluar', 'info_tambahan', 
+        'approval_status', 'status', 'updated_by'
     ];
 
     public function satpam()

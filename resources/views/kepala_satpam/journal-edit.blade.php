@@ -88,7 +88,6 @@
             @php
                 $itemsMasukKeluar = [
                     'barang_keluar' => 'Barang Inventaris',
-                    'kendaraan_dinas_keluar' => 'Kendaraan Dinas',
                 ];
             @endphp
 

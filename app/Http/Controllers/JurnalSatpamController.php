@@ -237,7 +237,7 @@ class JurnalSatpamController extends Controller
 
         // Daftar item isian yang harus dicek radio button nya
         $itemsYesNo = ['kejadian_temuan', 'lembur', 'proyek_vendor'];
-        $itemsMasukKeluar = ['barang_keluar', 'kendaraan_dinas_keluar'];
+        $itemsMasukKeluar = ['barang_keluar'];
 
         
         // Validasi untuk grup "Yes/No"
@@ -276,8 +276,6 @@ class JurnalSatpamController extends Controller
             'proyek_vendor' => $request->proyek_vendor,
             'is_barang_keluar' => $request->is_barang_keluar,
             'barang_keluar' => $request->barang_keluar,
-            'is_kendaraan_dinas_keluar' => $request->is_kendaraan_dinas_keluar,
-            'kendaraan_dinas_keluar' => $request->kendaraan_dinas_keluar,
             'info_tambahan' => $request->info_tambahan,
             'status' => $status,
         ]);
@@ -363,7 +361,7 @@ class JurnalSatpamController extends Controller
 
         // Daftar item isian yang harus dicek radio button nya
         $itemsYesNo = ['kejadian_temuan', 'lembur', 'proyek_vendor'];
-        $itemsMasukKeluar = ['barang_keluar', 'kendaraan_dinas_keluar'];
+        $itemsMasukKeluar = ['barang_keluar'];
 
         // Validasi untuk grup "Yes/No"
         foreach ($itemsYesNo as $item) {
@@ -401,8 +399,6 @@ class JurnalSatpamController extends Controller
             'proyek_vendor' => $request->proyek_vendor,
             'is_barang_keluar' => $request->is_barang_keluar,
             'barang_keluar' => $request->barang_keluar,
-            'is_kendaraan_dinas_keluar' => $request->is_kendaraan_dinas_keluar,
-            'kendaraan_dinas_keluar' => $request->kendaraan_dinas_keluar,
         ];
 
         foreach ($updateData as $field => $value) {

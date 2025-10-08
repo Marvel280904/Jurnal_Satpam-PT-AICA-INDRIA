@@ -304,7 +304,6 @@
                         ['Lembur', format(jurnal.lembur)],
                         ['Proyek/Vendor', format(jurnal.proyek_vendor)],
                         ['Barang Inventaris Keluar', format(jurnal.barang_keluar)],
-                        ['Kendaraan Dinas Luar', format(jurnal.kendaraan_dinas_keluar)],
                         ['Informasi Tambahan', format(jurnal.info_tambahan)],
                     ];
 
@@ -327,7 +326,7 @@
 
                     // show button approve khusus user next shift
                     const isNextShiftUser  = jurnal.next_shift_user_id && currentUserId == jurnal.next_shift_user_id;
-                    const isApproved = jurnal.approval_status == 1;
+                    const isApproved = jurnal.status != 'pending';
                     
                     if (isNextShiftUser  && !isApproved) {
                         approveSection.style.display = 'block';

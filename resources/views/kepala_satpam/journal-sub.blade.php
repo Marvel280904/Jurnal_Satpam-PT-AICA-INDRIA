@@ -113,7 +113,6 @@
             @php
                 $itemsMasukKeluar = [
                     'barang_keluar' => 'Barang Inventaris',
-                    'kendaraan_dinas_keluar' => 'Kendaraan Dinas',
                 ];
             @endphp
 
@@ -239,7 +238,6 @@
             @php
                 $itemsMasukKeluar = [
                     'barang_keluar' => 'Barang Inventaris',
-                    'kendaraan_dinas_keluar' => 'Kendaraan Dinas',
                 ];
             @endphp
             @foreach($itemsMasukKeluar as $key => $label)
