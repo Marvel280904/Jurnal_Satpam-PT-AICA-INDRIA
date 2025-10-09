@@ -39,7 +39,7 @@
 
 
             <div class="manage">
-                <h3>Manage</h3>
+                <h3>Shortcut</h3>
                 <a href="#" onclick="togglePopup('popup-add-user')">
                     <i class="bi bi-person-fill-add"></i> Add User
                 </a>

@@ -67,7 +67,7 @@
 
             <!-- STATUS JURNAL HARI INI -->
             <div class="jurnal-status-panel">
-                <h3>Status Pengisian Jurnal</h3>
+                <h3>Journal Submission Status</h3>
                 <div class="scroll-panel">
                     @forelse($latestJurnals as $jurnal)
                         <div class="jurnal-card">
@@ -96,7 +96,7 @@
 
         <!-- HISTORY -->
         <div class="history-panel">
-            <h3>Histori Pengisian Jurnal</h3>
+            <h3>Journal Submission History</h3>
             <table class="history-table">
                 <thead>
                     <tr>
