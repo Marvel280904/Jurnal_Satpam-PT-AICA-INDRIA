@@ -14,6 +14,7 @@ use App\Http\Controllers\PreventBackHistory;
 use App\Http\Controllers\JurnalSatpamController;
 use App\Http\Controllers\LogHistoryController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\SettingsController;
 
 
 
@@ -94,6 +95,10 @@ Route::middleware('auth', 'prevent-back-history')->group(function () {
     // Route::get('/guard-data/jadwal/check', [GuardController::class, 'checkJadwal'])->name('guard.jadwal.check');
     // Route::post('/guard-data/jadwal/store', [GuardController::class, 'storeJadwal'])->name('guard.jadwal.store');
     
+    // Route untuk Beta Mode (hanya admin)
+    Route::post('/beta-mode/toggle', [SettingsController::class, 'toggleBetaMode'])->name('beta-mode.toggle');
+    Route::get('/beta-mode/status', [SettingsController::class, 'getBetaMode'])->name('beta-mode.status');
+
 });
 
 // route logout

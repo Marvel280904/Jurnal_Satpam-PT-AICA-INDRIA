@@ -8,6 +8,7 @@ use App\Models\Shift;
 use App\Models\Satpam;
 use App\Models\JurnalSatpam;
 use App\Models\Upload;
+use App\Models\Setting;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
@@ -44,6 +45,8 @@ class JurnalSatpamController extends Controller
             return Satpam::where('id', $id)->value('nama') ?? 'User tidak dikenal';
         };
 
+        $betaMode = Setting::getValue('beta_mode', '0');
+
         return compact(
             'allLokasi',
             'totalLokasiCount',
@@ -53,13 +56,15 @@ class JurnalSatpamController extends Controller
             'allLatestJurnal',
             'UserLoginNow',
             'count',
-            'getUserNameById'
+            'getUserNameById',
+            'betaMode'
         );
     }
 
     public function create()
     {
         $user = Auth::user();
+        $data = $this->checking($user);
 
         $viewData = [
             'lokasis' => Lokasi::where('is_active', 1)->get(),
@@ -67,11 +72,9 @@ class JurnalSatpamController extends Controller
             'satpams' => Satpam::where('role', 'Satpam')->get(),
         ]; 
 
-        if ($user->role !== 'Satpam') {
+        if ($user->role !== 'Satpam' || $data['betaMode'] == '1') {
             return view('kepala_satpam.journal-sub', $viewData);
         }
-
-        $data = $this->checking($user);
 
         // Jika tidak ada jurnal sama sekali
         if ($data['latestJurnalsPerLokasi']->isEmpty()) {
@@ -98,7 +101,7 @@ class JurnalSatpamController extends Controller
                     // Ada yang belum approved, tampilkan warning
                     session()->flash('flash_notification', [
                         'type' => 'warning',
-                        'message' => 'Approve dahulu jurnal shift sebelumnya!'
+                        'message' => 'Approve jurnal shift sebelumnya!'
                     ]);
                     return view('kepala_satpam.journal-sub', $viewData);
                 }
@@ -171,66 +174,69 @@ class JurnalSatpamController extends Controller
         
         // Cek kesesuaian Jurnal yg disubmit
         $data = $this->checking($user);
-        
-        //dd($data['count'], $data['latestShiftId'], $data['latestShiftJurnal']->next_shift_user_id);
-        if ($data['latestJurnalsPerLokasi']->isNotEmpty()) {
-            // Jika jurnal shift sudah lengkap
-            if ($data['count'] == 0) {
-                $activeShifts = Shift::where('is_active', 1)->orderBy('mulai_shift')->get();
-                $latestShiftIndex = $activeShifts->search(fn($shift) => $shift->id == $data['latestShiftJurnal']->shift_id);
 
-                if ($latestShiftIndex === false) {
-                    // fallback, misal lanjutkan saja
-                }
+        // Jika Bukan Mode Beta, maka di cek
+        if ($data['betaMode'] == '0') {
+            //dd($data['count'], $data['latestShiftId'], $data['latestShiftJurnal']->next_shift_user_id);
+            if ($data['latestJurnalsPerLokasi']->isNotEmpty()) {
+                // Jika jurnal shift sudah lengkap
+                if ($data['count'] == 0) {
+                    $activeShifts = Shift::where('is_active', 1)->orderBy('mulai_shift')->get();
+                    $latestShiftIndex = $activeShifts->search(fn($shift) => $shift->id == $data['latestShiftJurnal']->shift_id);
 
-                $nextShiftIndex = ($latestShiftIndex + 1) % $activeShifts->count();
-                $nextShift = $activeShifts[$nextShiftIndex];
-                $nextDate = \Carbon\Carbon::parse($data['latestShiftJurnal']->tanggal);
-                if ($nextShiftIndex == 0) {
-                    $nextDate->addDay();
-                }
+                    if ($latestShiftIndex === false) {
+                        // fallback, misal lanjutkan saja
+                    }
 
-                $expectedDate = $nextDate->format('Y-m-d');
-                $dateMismatch = $request->tanggal != $expectedDate;
-                
-                if ($request->shift_id != $nextShift->id || $dateMismatch) {
-                    //dd($request->tanggal, $dateMismatch);
-                    $formattedExpectedDate = $nextDate->format('m-d-Y');
-                    $errorMessage = 'Isi jurnal untuk ' . $nextShift->nama_shift . ' pada tanggal ' . $formattedExpectedDate . '!';
-                    return response()->json([
-                        'success' => false,
-                        'message' => $errorMessage
-                    ], 422);
-                }
-            }
-            // Jika jurnal shift belum lengkap
-            else {
-                $responsibleUserIds = $data['allLatestJurnal']->pluck('user_id')->unique()->toArray();
-                $nextShiftUserIds = $data['allLatestJurnal']->pluck('next_shift_user_id')->filter()->unique()->toArray();
-                $latestJournalDate = $data['allLatestJurnal']->pluck('tanggal')->unique()->toArray();
+                    $nextShiftIndex = ($latestShiftIndex + 1) % $activeShifts->count();
+                    $nextShift = $activeShifts[$nextShiftIndex];
+                    $nextDate = \Carbon\Carbon::parse($data['latestShiftJurnal']->tanggal);
+                    if ($nextShiftIndex == 0) {
+                        $nextDate->addDay();
+                    }
 
-                if ($user->role == 'Kepala Satpam' || in_array($user->id, $responsibleUserIds)) {
-                    // Cek shift_id (perbandingan scalar vs scalar)
-                    $shiftMismatch = $request->shift_id != $data['latestShiftId'];
+                    $expectedDate = $nextDate->format('Y-m-d');
+                    $dateMismatch = $request->tanggal != $expectedDate;
                     
-                    // Cek next_shift_user_id (scalar vs array: gunakan in_array)
-                    $nextShiftMismatch = !in_array($request->next_shift_user_id, $nextShiftUserIds);
-
-                    // Cek tanggal (scalar vs array: gunakan in_array)
-                    $dateMismatch = empty($latestJournalDate) ? false : !in_array($request->tanggal, $latestJournalDate);
-                    
-                    // Jika salah satu mismatch (OR), return error
-                    if ($shiftMismatch || $nextShiftMismatch || $dateMismatch) {
+                    if ($request->shift_id != $nextShift->id || $dateMismatch) {
+                        //dd($request->tanggal, $dateMismatch);
+                        $formattedExpectedDate = $nextDate->format('m-d-Y');
+                        $errorMessage = 'Isi jurnal untuk ' . $nextShift->nama_shift . ' pada tanggal ' . $formattedExpectedDate . '!';
                         return response()->json([
                             'success' => false,
-                            'message' => 'Isi jurnal dengan Shift, next Shift, dan Tanggal yang sesuai!'
+                            'message' => $errorMessage
                         ], 422);
                     }
-                } else {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Anda tidak bertanggung jawab untuk mengisi jurnal tersebut'
-                    ], 403);
+                }
+                // Jika jurnal shift belum lengkap
+                else {
+                    $responsibleUserIds = $data['allLatestJurnal']->pluck('user_id')->unique()->toArray();
+                    $nextShiftUserIds = $data['allLatestJurnal']->pluck('next_shift_user_id')->filter()->unique()->toArray();
+                    $latestJournalDate = $data['allLatestJurnal']->pluck('tanggal')->unique()->toArray();
+
+                    if ($user->role == 'Kepala Satpam' || in_array($user->id, $responsibleUserIds)) {
+                        // Cek shift_id (perbandingan scalar vs scalar)
+                        $shiftMismatch = $request->shift_id != $data['latestShiftId'];
+                        
+                        // Cek next_shift_user_id (scalar vs array: gunakan in_array)
+                        $nextShiftMismatch = !in_array($request->next_shift_user_id, $nextShiftUserIds);
+
+                        // Cek tanggal (scalar vs array: gunakan in_array)
+                        $dateMismatch = empty($latestJournalDate) ? false : !in_array($request->tanggal, $latestJournalDate);
+                        
+                        // Jika salah satu mismatch (OR), return error
+                        if ($shiftMismatch || $nextShiftMismatch || $dateMismatch) {
+                            return response()->json([
+                                'success' => false,
+                                'message' => 'Isi jurnal dengan Shift, next Shift, dan Tanggal yang sesuai!'
+                            ], 422);
+                        }
+                    } else {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Anda tidak bertanggung jawab untuk mengisi jurnal tersebut'
+                        ], 403);
+                    }
                 }
             }
         }

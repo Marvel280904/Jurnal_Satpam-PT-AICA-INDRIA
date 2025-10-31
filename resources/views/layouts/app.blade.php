@@ -49,6 +49,13 @@
                         <input type="text" id="searchInput" placeholder="Search" oninput="filterMenu()">
                         <ul id="searchDropdown" class="search-dropdown"></ul>
                     </div>
+                    <span class="beta-mode">Beta Mode</span>
+                    <div class="toggle-mode">
+                        <label class="switch">
+                            <input type="checkbox" class="checkbox">
+                            <div class="slider"></div>
+                        </label>
+                    </div>
                     <div class="profile-section">
                         <img src="{{ Auth::user()->foto ? asset('storage/' . Auth::user()->foto) : asset('images/profile.jpeg') }}" alt="Profile" class="profile-pic">
                         <div class="profile-name">
@@ -219,6 +226,105 @@
             const searchBox = document.getElementById("searchbox");
             if (!searchBox.contains(e.target)) {
                 document.getElementById("searchDropdown").style.display = "none";
+            }
+        });
+
+        // Beta Mode Toggle Functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const betaToggle = document.querySelector('.checkbox');
+            const betaModeText = document.querySelector('.beta-mode');
+            
+            // Fungsi untuk menampilkan flash toast
+            function showFlashToast(message, type = 'success') {
+                // Hapus toast lama jika ada
+                const oldToast = document.getElementById('dynamicFlashToast');
+                if (oldToast) {
+                    oldToast.remove();
+                }
+
+                // Buat toast baru
+                const toast = document.createElement('div');
+                toast.id = 'dynamicFlashToast';
+                toast.className = `flash-toast ${type}`;
+                toast.innerHTML = `
+                    <span class="flash-dot"></span>
+                    <span class="flash-text">${message}</span>
+                    <button class="flash-close" onclick="this.parentElement.classList.add('hide')">&times;</button>
+                `;
+
+                // Tambahkan ke body
+                document.body.appendChild(toast);
+
+                // Auto hide setelah 5 detik
+                setTimeout(() => {
+                    toast.classList.add('hide');
+                    setTimeout(() => {
+                        if (toast.parentNode) {
+                            toast.parentNode.removeChild(toast);
+                        }
+                    }, 300);
+                }, 5000);
+            }
+
+            // Fungsi untuk update tampilan beta mode
+            function updateBetaModeDisplay(isBetaMode) {
+                if (betaToggle) {
+                    betaToggle.checked = isBetaMode;
+                }
+            }
+
+            // Load status beta mode dari server saat halaman dimuat
+            function loadBetaModeStatus() {
+                fetch('/beta-mode/status')
+                    .then(response => response.json())
+                    .then(data => {
+                        const isBetaMode = data.beta_mode === '1';
+                        updateBetaModeDisplay(isBetaMode);
+                    })
+                    .catch(error => {
+                        console.error('Error loading beta mode status:', error);
+                    });
+            }
+
+            if (betaToggle) {
+                betaToggle.addEventListener('change', function() {
+                    const isBetaMode = this.checked;
+                    
+                    // Kirim request untuk toggle beta mode ke server
+                    fetch('/beta-mode/toggle', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({ beta_mode: isBetaMode })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Update tampilan dengan nilai baru dari server
+                            updateBetaModeDisplay(data.beta_mode === '1');
+                            
+                            // Tampilkan flash toast
+                            showFlashToast(data.message, 'success');
+                        } else {
+                            // Jika gagal, reset toggle ke posisi semula
+                            updateBetaModeDisplay(!isBetaMode);
+                            
+                            // Tampilkan error message
+                            showFlashToast(data.message, 'error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error toggling beta mode:', error);
+                        // Jika error, reset toggle ke posisi semula
+                        updateBetaModeDisplay(!isBetaMode);
+                        showFlashToast('Terjadi error saat mengubah Beta Mode', 'error');
+                    });
+                });
+                
+                // Load status saat halaman dimuat
+                loadBetaModeStatus();
             }
         });
     </script>

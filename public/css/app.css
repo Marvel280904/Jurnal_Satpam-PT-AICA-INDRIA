@@ -171,6 +171,7 @@ body, html {
     position: relative;
     display: flex;
     align-items: center;
+    margin-right: auto;
 }
 
 .search-icon {
@@ -222,6 +223,150 @@ body, html {
 
 .search-box .dropdown-toggle {
     cursor: pointer;
+}
+
+.beta-mode{
+    margin: 0 5px 0 0;
+}
+
+/* TOGGLE SWITCH */ 
+.switch {
+    display: flex;
+    align-items: center;
+    margin-right: 10px;
+}
+
+.checkbox {
+    display: none;
+}
+
+.slider {
+    width: 44px; /* Lebih kecil dari sebelumnya */
+    height: 22px; /* Lebih kecil dari sebelumnya */
+    background-color: #d1d5db;
+    border-radius: 20px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    border: 2px solid transparent;
+    transition: .3s;
+    box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.15) inset;
+    cursor: pointer;
+    position: relative;
+}
+
+.slider::before {
+    content: '';
+    display: block;
+    width: 18px; /* Lebih kecil */
+    height: 18px; /* Lebih kecil */
+    background-color: #fff;
+    transform: translateX(2px); /* Posisi awal */
+    border-radius: 50%;
+    transition: .3s;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    position: absolute;
+    left: 0;
+}
+
+.checkbox:checked ~ .slider::before {
+    transform: translateX(22px); /* Posisi ketika aktif */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.checkbox:checked ~ .slider {
+    background-color: #3b82f6; /* Warna biru ketika aktif */
+}
+
+.checkbox:active ~ .slider::before {
+    transform: translateX(8px);
+}
+
+/* ===========================
+   NOTIFICATION COMPONENTS
+   (Flash Toast & Form Errors)
+   =========================== */
+/* --- Flash Toast (Top Center) --- */
+.flash-toast {
+    position: fixed;
+    top: 30px;
+    left: 60%;
+    transform: translateX(-50%);
+    z-index: 99999;
+    min-width: 320px;
+    max-width: 90vw;
+    background: #ffffff;
+    color: #0f172a;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.15);
+    padding: 12px 44px 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid rgba(2,6,23,.08);
+    animation: flashSlideIn .25s ease-out;
+}
+
+.flash-toast .flash-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    display: inline-block;
+}
+
+.flash-toast .flash-close {
+    position: absolute;
+    right: 10px;
+    top: 8px;
+    font-size: 20px;
+    line-height: 1;
+    border: 0;
+    background: transparent;
+    color: #64748b;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.flash-toast .flash-close:hover {
+    color: #0f172a;
+}
+
+.flash-toast.success { 
+    border-left: 6px solid #16a34a; 
+}
+
+.flash-toast.success .flash-dot { 
+    background: #16a34a; 
+}
+
+.flash-toast.error { 
+    border-left: 6px solid #ef4444; 
+}
+
+.flash-toast.error .flash-dot { 
+    background: #ef4444; 
+}
+
+.flash-toast.hide {
+    animation: flashFadeOut .25s ease-in forwards;
+}
+
+@keyframes flashSlideIn { 
+    from { 
+        transform: translate(-50%, -30px); 
+        opacity: 0; 
+    } 
+    to { 
+        transform: translate(-50%, 30); 
+        opacity: 1; 
+    } 
+}
+
+@keyframes flashFadeOut { 
+    to { 
+        transform: translate(-50%, -30px); 
+        opacity: 0; 
+    } 
 }
 
 /* ===========================
@@ -331,16 +476,14 @@ body, html {
    =========================== */
 /* ===== Notification bell in topbar ===== */
 
-/* Nice alignment for the right side */
 .topbar1 .profile-section {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-/* Keep the bell right before the profile */
 .topbar1 .notif {
-  margin: 0 12px 0 0;   /* space between bell and profile */
+  margin: 0 12px 0 0;
   display: flex;
   align-items: center;
 }
@@ -477,6 +620,12 @@ body, html {
 /* ===========================
    RESPONSIVE SIDEBAR & LAYOUT
    =========================== */
+@media (max-width: 900px) {
+    .beta-mode{
+        display: none;
+    }
+}
+
 @media (max-width: 750px) {
     /* Sidebar Admin */
     .sidebar {
