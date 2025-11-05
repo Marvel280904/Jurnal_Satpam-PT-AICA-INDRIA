@@ -72,7 +72,7 @@ class LogHistoryController extends Controller
                 });
             }
 
-            $jurnals = $query->orderByDesc('id')->get()->paginate(100); // Collection -> forelse @empty bisa
+            $jurnals = $query->orderByDesc('id')->paginate(100); // Collection -> forelse @empty bisa
             $jurnals->each(function ($jurnal) {
                 $jurnal->isApprove = $jurnal->status == 'waiting';
                 $jurnal->isPending = $jurnal->status == 'pending';
