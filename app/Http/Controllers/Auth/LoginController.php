@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Models\Satpam;
 use App\Models\RecentActivity;
+use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
 
 class LoginController extends Controller
 {
@@ -53,5 +54,29 @@ class LoginController extends Controller
         return back()->withErrors([
             'username' => 'Username atau password salah.',
         ]);
+    }
+
+    public function ssoLogin(Request $request)
+    {
+        $token = $request->query('token');
+        try {
+            $payload = JWTAuth::setToken($token)->getPayload();
+            $username = $payload->get('username');
+
+            $user = Satpam::where('username', $username)->first();
+
+            if (!$user) {
+                return abort(401, 'User tidak ditemukan di Jurnal Satpam.');
+            }
+
+            Auth::login($user);
+            return redirect()->route('dashboard');
+        } catch (\PHPOpenSourceSaver\JWTAuth\Exceptions\TokenExpiredException $e) {
+            return abort(401, 'Token kadaluarsa.');
+        } catch (\PHPOpenSourceSaver\JWTAuth\Exceptions\TokenInvalidException $e) {
+            return abort(401, 'Token tidak valid.');
+        } catch (\Throwable $th) {
+            return abort(401, 'Token tidak valid atau kadaluarsa');
+        }
     }
 }

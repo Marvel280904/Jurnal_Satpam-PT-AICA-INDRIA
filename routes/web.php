@@ -22,7 +22,7 @@ use App\Http\Controllers\SettingsController;
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login']);
-    Route::get('/', fn () => redirect()->route('login')); // redirect root ke login
+    Route::get('/', fn() => redirect()->route('login')); // redirect root ke login
 });
 
 // route setelah login
@@ -94,11 +94,10 @@ Route::middleware('auth', 'prevent-back-history')->group(function () {
     // Route::post('/guard-data/update/{id}', [GuardController::class, 'update'])->name('guard.update');
     // Route::get('/guard-data/jadwal/check', [GuardController::class, 'checkJadwal'])->name('guard.jadwal.check');
     // Route::post('/guard-data/jadwal/store', [GuardController::class, 'storeJadwal'])->name('guard.jadwal.store');
-    
+
     // Route untuk Beta Mode (hanya admin)
     Route::post('/beta-mode/toggle', [SettingsController::class, 'toggleBetaMode'])->name('beta-mode.toggle');
     Route::get('/beta-mode/status', [SettingsController::class, 'getBetaMode'])->name('beta-mode.status');
-
 });
 
 // route logout
@@ -109,9 +108,11 @@ Route::post('/logout', function (Request $request) {
         'description' => 'Logout dari sistem',
         'severity' => 'info'
     ]);
-    
+
     Auth::logout();
     $request->session()->invalidate();
     $request->session()->regenerateToken();
     return redirect('/login');
 })->name('logout');
+
+Route::get('sso-login', [LoginController::class, 'ssoLogin']);

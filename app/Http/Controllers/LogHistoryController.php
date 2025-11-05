@@ -11,7 +11,7 @@ use App\Models\Lokasi;
 use App\Models\Shift;
 use App\Models\User;
 use Carbon\Carbon;
-
+use Illuminate\Support\Facades\Cache;
 
 class LogHistoryController extends Controller
 {
@@ -37,48 +37,52 @@ class LogHistoryController extends Controller
         $allLatestJurnal = $latestJurnalsPerLokasi->filter(function ($jurnal) use ($latestShiftId) {
             return $jurnal->shift_id == $latestShiftId;
         })->values();
-        
+
         // $NextShiftUser Id dari latest jurnal (global, dari $latestShiftJurnal)
         $NextShiftUserId = $latestShiftJurnal ? $latestShiftJurnal->next_shift_user_id : null;
 
-        $query = JurnalSatpam::with(['lokasi','shift','satpam','nextShiftUser','uploads','updatedBySatpam']);
+        $jurnals = Cache::remember('jurnals', 300, function () use ($request) {
+            $query = JurnalSatpam::with(['lokasi', 'shift', 'satpam', 'nextShiftUser', 'uploads', 'updatedBySatpam']);
 
-        // Lokasi (id)
-        if ($request->filled('lokasi_id')) {
-            $query->where('lokasi_id', $request->lokasi_id);
-        }
-
-        // Shift (bisa terima "Pagi/Siang/Malam" atau "Shift Pagi/Shift Siang/Shift Malam")
-        if ($request->filled('shift')) {
-            $map = ['Pagi'=>'Shift Pagi','Siang'=>'Shift Siang','Malam'=>'Shift Malam'];
-            $shiftNama = $map[$request->shift] ?? $request->shift; // normalisasi
-            if ($shiftId = Shift::where('nama_shift', $shiftNama)->value('id')) {
-                $query->where('shift_id', $shiftId);
+            // Lokasi (id)
+            if ($request->filled('lokasi_id')) {
+                $query->where('lokasi_id', $request->lokasi_id);
             }
-        }
 
-        // Tanggal persis
-        if ($request->filled('tanggal')) {
-            $query->whereDate('tanggal', $request->tanggal);
-        }
+            // Shift (bisa terima "Pagi/Siang/Malam" atau "Shift Pagi/Shift Siang/Shift Malam")
+            if ($request->filled('shift')) {
+                $map = ['Pagi' => 'Shift Pagi', 'Siang' => 'Shift Siang', 'Malam' => 'Shift Malam'];
+                $shiftNama = $map[$request->shift] ?? $request->shift; // normalisasi
+                if ($shiftId = Shift::where('nama_shift', $shiftNama)->value('id')) {
+                    $query->where('shift_id', $shiftId);
+                }
+            }
 
-        // Search by nama satpam / lokasi
-        if ($request->filled('search')) {
-            $s = $request->search;
-            $query->where(function($q) use ($s) {
-                $q->whereHas('satpam', fn($w) => $w->where('nama','like',"%{$s}%"))
-                ->orWhereHas('lokasi', fn($w) => $w->where('nama_lokasi','like',"%{$s}%"));
+            // Tanggal persis
+            if ($request->filled('tanggal')) {
+                $query->whereDate('tanggal', $request->tanggal);
+            }
+
+            // Search by nama satpam / lokasi
+            if ($request->filled('search')) {
+                $s = $request->search;
+                $query->where(function ($q) use ($s) {
+                    $q->whereHas('satpam', fn($w) => $w->where('nama', 'like', "%{$s}%"))
+                        ->orWhereHas('lokasi', fn($w) => $w->where('nama_lokasi', 'like', "%{$s}%"));
+                });
+            }
+
+            $jurnals = $query->orderByDesc('id')->get()->paginate(100); // Collection -> forelse @empty bisa
+            $jurnals->each(function ($jurnal) {
+                $jurnal->isApprove = $jurnal->status == 'waiting';
+                $jurnal->isPending = $jurnal->status == 'pending';
+                $jurnal->responsibleUser  = $jurnal->satpam;
             });
-        }
 
-        $jurnals = $query->orderByDesc('id')->get(); // Collection -> forelse @empty bisa
-        $jurnals->each(function ($jurnal) {
-            $jurnal->isApprove = $jurnal->status == 'waiting';
-            $jurnal->isPending = $jurnal->status == 'pending';
-            $jurnal->responsibleUser  = $jurnal->satpam;
+            return $jurnals;
         });
 
-        return view('kepala_satpam.log-history', compact('jurnals','lokasis','shifts', 'user'));
+        return view('kepala_satpam.log-history', compact('jurnals', 'lokasis', 'shifts', 'user'));
     }
 
     public function updateStatus(Request $request, $id)

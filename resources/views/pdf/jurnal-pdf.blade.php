@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <style>
@@ -8,6 +9,7 @@
             font-size: 12px;
             padding: 20px;
         }
+
         .header {
             display: flex;
             justify-content: space-between;
@@ -27,15 +29,15 @@
         .logo-title h3 {
             margin: 0;
             font-size: 18px;
-            margin-left:65px;
-            margin-top:-35px;
+            margin-left: 65px;
+            margin-top: -35px;
         }
 
         .tanggal span {
             font-size: 12px;
-            margin-left:84%;
+            margin-left: 84%;
         }
-        
+
         h1 {
             text-align: center;
             margin-top: 5px;
@@ -59,7 +61,8 @@
         .flex-info {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start; /* ⬅ ini penting */
+            align-items: flex-start;
+            /* ⬅ ini penting */
             gap: 20px;
             margin-top: 20px;
         }
@@ -92,9 +95,9 @@
 
         .right-info {
             font-size: 14px;
-            margin-left:300px;
-            margin-top:-140px;
-            padding-bottom:90px;
+            margin-left: 300px;
+            margin-top: -140px;
+            padding-bottom: 90px;
         }
 
         .right-info b {
@@ -124,12 +127,13 @@
             font-size: 15px;
         }
 
-        .guards{
+        .guards {
             margin-left: 8px;
             margin-top: -17px;
         }
     </style>
 </head>
+
 <body>
     <div class="header">
         <div class="logo-title">
@@ -141,17 +145,35 @@
         </div>
     </div>
 
-    <h1>Journal Detail</h1>
+    <h1>Detail Jurnal</h1>
 
     <div class="flex-info">
         <div class="left-info">
             <table>
-                <tr><td>Tanggal</td><td>: {{ \Carbon\Carbon::parse($jurnal->tanggal)->format('F d, Y') }}</td></tr>
-                <tr><td>Pengisi</td><td>: {{ $jurnal->satpam->nama ?? '-' }}</td></tr>
-                <tr><td>Lokasi</td><td>: {{ $jurnal->lokasi->nama_lokasi ?? '-' }}</td></tr>
-                <tr><td>Shift</td><td>: {{ $jurnal->shift->nama_shift ?? '-' }}</td></tr>
-                <tr><td>Next Shift</td><td>: {{ $jurnal->nextShiftUser->nama ?? '-' }}</td></tr>
-                <tr><td>Journal Status</td><td>: {{ ucfirst($jurnal->status) }}</td></tr>
+                <tr>
+                    <td>Tanggal</td>
+                    <td>: {{ \Carbon\Carbon::parse($jurnal->tanggal)->format('F d, Y') }}</td>
+                </tr>
+                <tr>
+                    <td>Pengisi</td>
+                    <td>: {{ $jurnal->satpam->nama ?? '-' }}</td>
+                </tr>
+                <tr>
+                    <td>Lokasi</td>
+                    <td>: {{ $jurnal->lokasi->nama_lokasi ?? '-' }}</td>
+                </tr>
+                <tr>
+                    <td>Shift</td>
+                    <td>: {{ $jurnal->shift->nama_shift ?? '-' }}</td>
+                </tr>
+                <tr>
+                    <td>Shift Selanjutnya</td>
+                    <td>: {{ $jurnal->nextShiftUser->nama ?? '-' }}</td>
+                </tr>
+                <tr>
+                    <td>Status</td>
+                    <td>: {{ ucfirst($jurnal->status) }}</td>
+                </tr>
             </table>
         </div>
         <!-- <div class="right-info">
@@ -161,13 +183,13 @@
                     <td>
                         :
                         <div class="guards">
-                            @if(isset($anggotaShift) && count($anggotaShift) > 0)
-                                @foreach($anggotaShift as $anggota)
-                                    {{ $anggota }}<br>
-                                @endforeach
-                            @else
-                                Tidak ada anggota shift
-                            @endif
+                            @if (isset($anggotaShift) && count($anggotaShift) > 0)
+@foreach ($anggotaShift as $anggota)
+{{ $anggota }}<br>
+@endforeach
+@else
+Tidak ada anggota shift
+@endif
                         </div>
                     </td>
                 </tr>
@@ -183,7 +205,7 @@
 
         <tr>
             <td>Laporan Kejadian / Temuan</td>
-            <td>{{ $jurnal->is_kejadian_temuan == 1 ? 'Yes' : ($jurnal->is_kejadian_temuan == 0 ? 'No' : '-') }}</td>
+            <td>{{ $jurnal->is_kejadian_temuan == 1 ? 'Ya' : ($jurnal->is_kejadian_temuan == 0 ? 'Tidak' : '-') }}</td>
         </tr>
         <tr>
             <td></td>
@@ -192,7 +214,7 @@
 
         <tr>
             <td>Lembur</td>
-            <td>{{ $jurnal->is_lembur == 1 ? 'Yes' : ($jurnal->is_lembur == 0 ? 'No' : '-') }}</td>
+            <td>{{ $jurnal->is_lembur == 1 ? 'Ya' : ($jurnal->is_lembur == 0 ? 'Tidak' : '-') }}</td>
         </tr>
         <tr>
             <td></td>
@@ -201,7 +223,7 @@
 
         <tr>
             <td>Proyek / Vendor</td>
-            <td>{{ $jurnal->is_proyek_vendor == 1 ? 'Yes' : ($jurnal->is_proyek_vendor == 0 ? 'No' : '-') }}</td>
+            <td>{{ $jurnal->is_proyek_vendor == 1 ? 'Ya' : ($jurnal->is_proyek_vendor == 0 ? 'Tidak' : '-') }}</td>
         </tr>
         <tr>
             <td></td>
@@ -210,7 +232,7 @@
 
         <tr>
             <td>Barang Inventaris Keluar</td>
-            <td>{{ $jurnal->is_barang_keluar == 1 ? 'Yes' : ($jurnal->is_barang_keluar == 0 ? 'No' : '-') }}</td>
+            <td>{{ $jurnal->is_barang_keluar == 1 ? 'Ya' : ($jurnal->is_barang_keluar == 0 ? 'Tidak' : '-') }}</td>
         </tr>
         <tr>
             <td></td>
@@ -223,4 +245,5 @@
         </tr>
     </table>
 </body>
+
 </html>

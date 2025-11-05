@@ -47,7 +47,7 @@ class AppServiceProvider extends ServiceProvider
                     $reminders[] = [
                         'key' => 'approval',
                         'icon' => 'bi-journal-check',
-                        'title' => 'Jurnal Approval',
+                        'title' => 'Peresetujuan Jurnal',
                         'desc' => $waitingCount . ' Jurnal menunggu persetujuan',
                         'url' => route('log.history'),
                     ];
@@ -149,7 +149,7 @@ class AppServiceProvider extends ServiceProvider
                         $reminders[] = [
                             'key' => 'pending-' . $entry->lokasi_id . '-' . $entry->shift,
                             'icon' => 'bi-journal-plus',
-                            'title' => 'Journal Submission',
+                            'title' => 'Isi Jurnal',
                             'desc' => "Jurnal untuk {$entry->lokasi} - {$entry->shift} - {$entry->user} belum disubmit.",
                             'url' => route('jurnal.submission'),
                         ];
@@ -161,9 +161,9 @@ class AppServiceProvider extends ServiceProvider
                     'reminderCount' => count($reminders),
                 ]);
 
-            // =========================================================================
-            // PERAN: SATPAM
-            // =========================================================================
+                // =========================================================================
+                // PERAN: SATPAM
+                // =========================================================================
             } elseif (Auth::check() && Auth::user()->role === 'Satpam') {
                 $user = Auth::user();
                 $todayCarbon = Carbon::today();
@@ -226,7 +226,7 @@ class AppServiceProvider extends ServiceProvider
                 }
 
                 // 4) REMINDER: JURNAL YANG HARUS DISUBMIT (filter user bertanggung jawab atau next shift)
-                $totalLokasiCount = $allLokasi->count(); 
+                $totalLokasiCount = $allLokasi->count();
                 $count = $totalLokasiCount - $allLatestJurnal->count();
                 $pendingJournals = collect(); // Collection untuk reminder
 
@@ -351,7 +351,7 @@ class AppServiceProvider extends ServiceProvider
                     $reminders[] = [
                         'key' => 'pending-' . $entry->lokasi_id . '-' . $entry->shift,
                         'icon' => 'bi-journal-plus',
-                        'title' => 'Journal Submission',
+                        'title' => 'Isi Jurnal',
                         'desc' => "Jurnal untuk {$entry->lokasi} - {$entry->shift} belum disubmit.", // Tanpa user, karena sudah milik user login
                         'url' => route('jurnal.submission'),
                     ];
@@ -363,7 +363,7 @@ class AppServiceProvider extends ServiceProvider
                     $reminders[] = [
                         'key' => 'pending-more',
                         'icon' => 'bi-journal-plus',
-                        'title' => 'More Submissions',
+                        'title' => 'Pengisian Lainnya',
                         'desc' => ($pendingJournals->count() - 5) . ' jurnal lainnya menunggu submit.',
                         'url' => route('jurnal.submission'),
                     ];
