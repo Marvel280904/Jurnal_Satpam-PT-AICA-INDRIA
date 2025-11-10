@@ -342,13 +342,22 @@
                 const isNextShiftUser = jurnal.next_shift_user_id && currentUserId == jurnal
                     .next_shift_user_id;
                 const isApproved = jurnal.status != 'pending';
+                const role = "{{ $role }}"
+                const isApprovedKepalaBagian = jurnal.status == 'waiting';
 
-                if (isNextShiftUser && !isApproved) {
+                if ((isNextShiftUser && !isApproved) || (isApprovedKepalaBagian && role ==
+                        'Kepala Satpam')) {
                     approveSection.style.display = 'block';
                     approveBtn.disabled = false;
                     approveBtn.textContent = 'Approve Journal';
                     // Attach event listener (lihat poin 5)
-                    approveBtn.onclick = () => handleApprove(jurnal.id);
+                    let status = 'waiting';
+                    if (role == 'Kepala Satpam') {
+                        status = 'approve'
+                    }
+                    console.log(status)
+
+                    approveBtn.onclick = () => handleApprove(jurnal.id, status);
                 } else if (isApproved) {
                     approveSection.style.display = 'block';
                     approveBtn.disabled = true;
@@ -434,7 +443,7 @@
     }
 
     // ubah status approval jurnal oleh next shift
-    function handleApprove(jurnalId) {
+    function handleApprove(jurnalId, status) {
         const csrf = document.querySelector('meta[name="csrf-token"]').content;
 
         approveBtn.disabled = true;
@@ -447,10 +456,14 @@
                     'X-CSRF-TOKEN': csrf,
                     'X-Requested-With': 'XMLHttpRequest',
                     'Content-Type': 'application/json'
-                }
+                },
+                body: JSON.stringify({
+                    status: status
+                })
             })
             .then(response => response.json())
             .then(data => {
+                console.log(data);
                 if (data.success) {
                     window.location.href = data.redirect_url;
                 } else {

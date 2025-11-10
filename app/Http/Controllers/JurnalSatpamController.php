@@ -70,7 +70,7 @@ class JurnalSatpamController extends Controller
             'lokasis' => Lokasi::where('is_active', 1)->get(),
             'shifts'  => Shift::where('is_active', 1)->get(),
             'satpams' => Satpam::where('role', 'Satpam')->get(),
-        ]; 
+        ];
 
         if ($user->role !== 'Satpam' || $data['betaMode'] == '1') {
             return view('kepala_satpam.journal-sub', $viewData);
@@ -90,9 +90,9 @@ class JurnalSatpamController extends Controller
             if ($isUserNextShift) {
                 // ambil semua approve status dari latest jurnal
                 $latestJournalStatus  = $data['allLatestJurnal']->pluck('status')->unique()->toArray();
-                
+
                 // Cek apakah SEMUA approval status = 1 (semua approved) dari latest jurnalnya
-                $AllJournalStatusWaiting  = empty($latestJournalStatus) || 
+                $AllJournalStatusWaiting  = empty($latestJournalStatus) ||
                     collect($latestJournalStatus)->every(fn($status) => $status != 'pending');
                 if ($AllJournalStatusWaiting) {
                     // Semua sudah approved
@@ -171,7 +171,7 @@ class JurnalSatpamController extends Controller
             ], 422);
         }
 
-        
+
         // Cek kesesuaian Jurnal yg disubmit
         $data = $this->checking($user);
 
@@ -197,7 +197,7 @@ class JurnalSatpamController extends Controller
 
                     $expectedDate = $nextDate->format('Y-m-d');
                     $dateMismatch = $request->tanggal != $expectedDate;
-                    
+
                     if ($request->shift_id != $nextShift->id || $dateMismatch) {
                         //dd($request->tanggal, $dateMismatch);
                         $formattedExpectedDate = $nextDate->format('m-d-Y');
@@ -217,13 +217,13 @@ class JurnalSatpamController extends Controller
                     if ($user->role == 'Kepala Satpam' || in_array($user->id, $responsibleUserIds)) {
                         // Cek shift_id (perbandingan scalar vs scalar)
                         $shiftMismatch = $request->shift_id != $data['latestShiftId'];
-                        
+
                         // Cek next_shift_user_id (scalar vs array: gunakan in_array)
                         $nextShiftMismatch = !in_array($request->next_shift_user_id, $nextShiftUserIds);
 
                         // Cek tanggal (scalar vs array: gunakan in_array)
                         $dateMismatch = empty($latestJournalDate) ? false : !in_array($request->tanggal, $latestJournalDate);
-                        
+
                         // Jika salah satu mismatch (OR), return error
                         if ($shiftMismatch || $nextShiftMismatch || $dateMismatch) {
                             return response()->json([
@@ -245,7 +245,7 @@ class JurnalSatpamController extends Controller
         $itemsYesNo = ['kejadian_temuan', 'lembur', 'proyek_vendor'];
         $itemsMasukKeluar = ['barang_keluar'];
 
-        
+
         // Validasi untuk grup "Yes/No"
         foreach ($itemsYesNo as $item) {
             if ($request->input("is_$item") === '1' && !$request->filled($item)) {
@@ -298,7 +298,7 @@ class JurnalSatpamController extends Controller
                     $originalName = $file->getClientOriginalName();
                     $filenameWithoutExt = pathinfo($originalName, PATHINFO_FILENAME);
                     $extension = $file->getClientOriginalExtension();
-                    
+
                     $safeFilename = Str::slug($filenameWithoutExt);
                     // Gunakan time() untuk memastikan keunikan
                     $finalName = time() . '-' . $safeFilename . '.' . $extension;
@@ -318,7 +318,7 @@ class JurnalSatpamController extends Controller
 
         return response()->json([
             'success' => true,
-            'redirect_url' => route('log.history') 
+            'redirect_url' => route('log.history')
         ]);
     }
 
@@ -341,7 +341,7 @@ class JurnalSatpamController extends Controller
     public function destroy($id)
     {
         $jurnal = JurnalSatpam::findOrFail($id);
-        
+
         // Hapus semua file terkait
         foreach ($jurnal->uploads as $upload) {
             File::delete(public_path($upload->file_path));
@@ -391,9 +391,9 @@ class JurnalSatpamController extends Controller
         // --- CEK PERUBAHAN DATA ---
         $hasChanges = false;
         $updateData = [
-            'lokasi_id' => $request->lokasi_id, 
-            'shift_id' => $request->shift_id,  
-            'next_shift_user_id' => $request->next_shift_user_id, 
+            'lokasi_id' => $request->lokasi_id,
+            'shift_id' => $request->shift_id,
+            'next_shift_user_id' => $request->next_shift_user_id,
             'tanggal' => $request->tanggal,
             'laporan_kegiatan' => $request->laporan_kegiatan,
             'info_tambahan' => $request->info_tambahan,
@@ -486,17 +486,17 @@ class JurnalSatpamController extends Controller
     public function updateApproval(Request $request, $id)
     {
         $jurnal = JurnalSatpam::findOrFail($id);
-        
-        // Validasi: Hanya next_shift_user_id yang boleh approve
-        if (Auth::id() != $jurnal->next_shift_user_id) {
+
+        // Validasi: Hanya next_shift_user_id atau kepala bagian yang boleh approve
+        if (Auth::id() != $jurnal->next_shift_user_id && Auth::user()->role != 'Kepala Satpam') {
             return response()->json(['success' => false, 'message' => 'Anda tidak berhak approve jurnal ini.'], 403);
         }
-        
+
         // Update status jadi Waiting
-        $jurnal->update(['status' => 'waiting']);
-        
+        $jurnal->update(['status' => $request->status]);
+
         session()->flash('success', 'Jurnal berhasil di-approve');
-    
+
         return response()->json([
             'success' => true,
             'redirect_url' => route('log.history')
