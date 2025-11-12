@@ -369,6 +369,18 @@ class AppServiceProvider extends ServiceProvider
                     ];
                 }
 
+                $notesReminder = JurnalSatpam::whereNotNull('notes')->where('is_read_notes', 0)->get();
+
+                if ($notesReminder->count() > 0) {
+                    $reminders[] = [
+                        'key' => 'pending-notes',
+                        'icon' => 'bi-card-checklist',
+                        'title' => 'Catatan Kepala Bagian',
+                        'desc' => "{$notesReminder->count()} jurnal memiliki catatan dari kepala bagian",
+                        'url' => route('log.history') . '?' . http_build_query(['ids' => $notesReminder->pluck('id')->toArray()])
+                    ];
+                }
+
                 $view->with([
                     'reminders' => $reminders,
                     'reminderCount' => count($reminders),

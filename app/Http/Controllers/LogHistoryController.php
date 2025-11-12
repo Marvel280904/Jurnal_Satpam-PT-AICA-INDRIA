@@ -79,6 +79,10 @@ class LogHistoryController extends Controller
             $jurnal->responsibleUser  = $jurnal->satpam;
         });
 
+        if ($request->ids) {
+            JurnalSatpam::whereIn('id', $request->ids)->update(['is_read_notes' => 1]);
+        }
+
         return view('kepala_satpam.log-history', compact('jurnals', 'lokasis', 'shifts', 'user'));
     }
 
@@ -95,7 +99,11 @@ class LogHistoryController extends Controller
 
         $jurnal = JurnalSatpam::findOrFail($id);
         $jurnal->status = $data['status'];
+        $jurnal->notes = $request->notes;
+        $jurnal->is_read_notes = 0;
         $jurnal->save();
+
+        session()->flash('success', 'Jurnal berhasil diperbarui.');
 
         return response()->json([
             'success' => true,

@@ -64,6 +64,7 @@
                         <th class="col-shift">Shift</th>
                         <th class="col-name">Name</th>
                         <th class="col-role">Role</th>
+                        <th class="col-notes">Catatan</th>
                         <th class="col-updated">Updated</th>
                         <th class="col-status">Status</th>
                     </tr>
@@ -76,12 +77,13 @@
                             <td>{{ $jurnal->shift->nama_shift ?? '-' }}</td>
                             <td>{{ $jurnal->satpam->nama ?? '-' }}</td>
                             <td>{{ $jurnal->satpam->role ?? '-' }}</td>
+                            <td>{{ $jurnal->notes ?? '-' }}</td>
                             <td>{{ $jurnal->updatedBySatpam->nama ?? '-' }}</td>
                             <td>
                                 <div class="action-content">
                                     @php $status = strtolower($jurnal->status); @endphp
 
-                                    @if ($role === 'Kepala Satpam' && $jurnal->isApprove)
+                                    @if ($role === 'Kepala Satpam' && !$jurnal->isApprove)
                                         <button type="button" class="badge-btn status-open"
                                             data-id="{{ $jurnal->id }}" data-status="{{ $status }}"
                                             title="Update Status" style="all:unset; cursor:pointer;">
@@ -89,8 +91,10 @@
                                                 <span class="badge green">Approve</span>
                                             @elseif($status === 'reject')
                                                 <span class="badge red">Reject</span>
-                                            @else
+                                            @elseif($status === 'waiting')
                                                 <span class="badge yellow">Waiting</span>
+                                            @else
+                                                <span class="badge grey">Pending</span>
                                             @endif
                                         </button>
                                     @else
@@ -186,6 +190,11 @@
                                 <option value="approve">Approve</option>
                                 <option value="reject">Reject</option>
                             </select>
+                        </div>
+
+                        <div class="form-row">
+                            <label for="notes">Catatan</label>
+                            <textarea name="notes" id="notes" rows="6"></textarea>
                         </div>
 
                         <button id="statusSave">Save</button>
@@ -353,11 +362,13 @@
                     // Attach event listener (lihat poin 5)
                     let status = 'waiting';
                     if (role == 'Kepala Satpam') {
-                        status = 'approve'
+                        approveBtn.onclick = () => {
+                            showStatusModal(jurnal.id);
+                        }
+                    } else {
+                        approveBtn.onclick = () => handleApprove(jurnal.id, status);
                     }
-                    console.log(status)
 
-                    approveBtn.onclick = () => handleApprove(jurnal.id, status);
                 } else if (isApproved) {
                     approveSection.style.display = 'block';
                     approveBtn.disabled = true;
@@ -378,31 +389,27 @@
         const btnClose = document.getElementById('statusClose');
         const btnSave = document.getElementById('statusSave');
         const selectEl = document.getElementById('statusSelect');
-        let currentId = null;
+        const notesText = document.getElementById('notes');
         const csrf = document.querySelector('meta[name="csrf-token"]').content;
+        const popup = document.getElementById('popup-detail');
 
-        openBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                currentId = btn.dataset.id;
-                const now = btn.dataset.status || 'waiting';
-                // set select; default to 'approve' if waiting
-                selectEl.value = (now === 'approve' || now === 'reject') ? now : 'approve';
-                modal.style.display = 'flex';
-            });
-        });
+        let currentId = null;
 
-        btnClose?.addEventListener('click', () => modal.style.display = 'none');
-        modal?.addEventListener('click', e => {
-            if (!e.target.closest('.modal-content')) {
-                modal.style.display = 'none';
-            }
-        });
+        window.showStatusModal = function(id, currentStatus = 'waiting') {
+            currentId = id;
+            selectEl.value = (currentStatus === 'approve' || currentStatus === 'reject') ?
+                currentStatus :
+                'approve';
+            notesText.value = '';
+            modal.style.display = 'flex';
+        };
 
-        btnSave?.addEventListener('click', () => {
-            if (!currentId) return;
-            const status = selectEl.value;
+        window.updateStatus = function(id, status, notes = '') {
+            const url = @json(route('jurnal.updateStatus', ['id' => '__ID__', 'notes' => '__notes__']))
+                .replace('__ID__', id)
+                .replace('__notes__', notes);
 
-            fetch(@json(route('jurnal.updateStatus', ['id' => '__ID__'])).replace('__ID__', currentId), {
+            return fetch(url, {
                     method: 'POST',
                     headers: {
                         'X-CSRF-TOKEN': csrf,
@@ -417,8 +424,8 @@
                 .then(data => {
                     if (!data.success) throw new Error('Update gagal');
 
-                    // Update badge in table (text + color) for this row
-                    const btn = document.querySelector(`.status-open[data-id="${currentId}"]`);
+                    // Update badge di tabel
+                    const btn = document.querySelector(`.status-open[data-id="${id}"]`);
                     if (btn) {
                         btn.dataset.status = data.status;
                         const span = btn.querySelector('.badge');
@@ -430,11 +437,38 @@
                     }
 
                     modal.style.display = 'none';
+                    popup.style.display = 'none';
+                    window.location.href =
+                        `{{ route('log.history') }}?success=${encodeURIComponent('Status berhasil diperbarui!')}`;
                 })
                 .catch(err => {
                     console.error(err);
+                    btnSave.disabled = false;
+                    btnSave.textContent = 'Save';
                     alert('Tidak bisa mengubah status.');
                 });
+        }
+
+        // 🟢 Event click pada tombol status di tabel
+        openBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                currentId = btn.dataset.id;
+                const now = btn.dataset.status || 'waiting';
+                showStatusModal(currentId, now);
+            });
+        });
+
+        btnClose?.addEventListener('click', () => modal.style.display = 'none');
+        modal?.addEventListener('click', e => {
+            if (!e.target.closest('.modal-content')) modal.style.display = 'none';
+        });
+
+        // 🟡 Tombol Save di modal
+        btnSave?.addEventListener('click', () => {
+            if (!currentId) return;
+            btnSave.disabled = true;
+            btnSave.textContent = 'Loading...';
+            updateStatus(currentId, selectEl.value, notesText.value);
         });
     })();
 
