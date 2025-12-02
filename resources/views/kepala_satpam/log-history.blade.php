@@ -314,6 +314,7 @@
 
                 const rows = [
                     ['Lokasi', format(jurnal.lokasi?.nama_lokasi)],
+                    ['Pengisi', format(jurnal.satpam?.nama)],
                     ['Shift', format(jurnal.shift?.nama_shift)],
                     ['Shift Selanjutnya', format(jurnal.next_shift_user?.nama)],
                     ['Tanggal', new Date(jurnal.tanggal).toLocaleDateString('en-US', {
